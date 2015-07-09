@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
         Array<Attribute> criteria;
         Attribute attr(
-            PEG_WBEM_SLP_SERVICE_ID"="PEG_WBEM_SLP_SERVICE_ID_DEFAULT);
+            PEG_WBEM_SLP_SERVICE_ID "=" PEG_WBEM_SLP_SERVICE_ID_DEFAULT);
         Array<CIMServerDescription> connections;
         SLPClientOptions* opts = (SLPClientOptions*)NULL;
         if (argc == 2)

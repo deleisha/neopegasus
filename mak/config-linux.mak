@@ -99,6 +99,8 @@ ifeq ($(COMPILER), clang)
     FLAGS += -W -Wall -Wno-unused-parameter  -Wno-unused-value -D_GNU_SOURCE \
         -DTHREAD_SAFE -D_REENTRANT -Werror=unused-variable -Wno-unused-function \
         -Werror=switch
+
+    EXTRA_CXX_FLAGS += -std=c++11
 else
     FLAGS += -W -Wall -Wno-unused -Wunused-variable
   # Starting with gcc 4.3 specific warnings can be reported as error
