@@ -63,7 +63,6 @@ public:
 private:
     String _userName, _ip;
     timeval _created;
-    unsigned _timeout;
 };
 
 

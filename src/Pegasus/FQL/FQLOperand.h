@@ -929,7 +929,6 @@ private:
     CIMType _cimType;
     bool _isArray;
     bool _resolved;
-    propertyType propertyType;
     // Define existence of Property Operand with index
     // and the value of the index if _isIndexedProperty = true
     bool _isIndexedProperty;

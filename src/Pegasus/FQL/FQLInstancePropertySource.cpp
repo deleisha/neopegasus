@@ -136,7 +136,7 @@ Boolean FQLInstancePropertySource::getValue(
                     }
                     type=val.getType();
 
-                    if ((type == CIMTYPE_INSTANCE))
+                    if (type == CIMTYPE_INSTANCE)
                     {
                         if (i == lastEntry)
                         {
