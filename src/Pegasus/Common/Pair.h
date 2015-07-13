@@ -33,8 +33,17 @@
 #define Pegasus_Pair_h
 
 #include <Pegasus/Common/Config.h>
+#include <utility>
 
 PEGASUS_NAMESPACE_BEGIN
+
+//If it is C++11 and above
+#if __cplusplus > 199711L
+
+template<class T, class U>
+using Pair = std::pair<T, U >;
+
+#else
 
 template<class T, class U>
 struct Pair
@@ -61,6 +70,7 @@ struct Pair
         return *this;
     }
 };
+#endif
 
 PEGASUS_NAMESPACE_END
 

@@ -157,7 +157,7 @@ bool System::strncasecmp(
     }
     Uint8* p = (Uint8*)s1;
     Uint8* q = (Uint8*)s2;
-    register int len = s1_l;
+    int len = s1_l;
    // lets do a loop-unrolling optimized compare here
     while (len >= 8)
     {
