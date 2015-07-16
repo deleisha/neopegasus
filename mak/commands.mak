@@ -523,7 +523,7 @@ mkdirhier_IgnoreError: CMDSFORCE
 ##
 ## NOTE: The CIMSERVER_CONFIG_OPTIONS are set in the environment on the
 ##       makefile rule command line invoking the runTestSuite command.
-##       They are inherted by the next shell which will run the
+##       They are inherited by the next shell which will run the
 ##       cimstart command.
 ##
 runTestSuite: CMDSFORCE

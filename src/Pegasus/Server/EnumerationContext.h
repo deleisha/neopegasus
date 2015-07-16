@@ -539,14 +539,19 @@ private:
 
     // number of requests for this EnumerationContext.
     Uint32 _requestCount;
-    // Number of objects returned and sum of all request counts
+
+    // Count of Objects actually returned
     Uint32 _responseObjectsCount;
+    // Accumulation of count of request maxObjectCounts
     Uint32 _requestedResponseObjectsCount;
-    // Counts all zero len responses sent from this provider.  This is
+
+    // Counts all zero length responses sent to Client.  This is
     // for statistics. This is, in effect the number of times during
     // this enumeation that the providers responded so late that we
-    // sent a zero response.  Indicator of provider overload or a really
-    // bad provider somewhere.
+    // sent a zero response.  This is an indicator of provider overload,
+    // or a  provider somewhere that is responding very slowly. The timers
+    // are such that there should be at least one response from a provider
+    // about each 15 seconds which is the current timer for this timeout.
     Uint32 _totalZeroLenObjectResponseCounter;
 
     // Enumeration startTime in microseconds
@@ -621,11 +626,12 @@ inline void EnumerationContext::setContinueOnError(Boolean x)
 {
     _continueOnError = x;
 }
-// Increment both the consecutive and total
+// Increment both the consecutive and total counters and return the value
+// of the consecutive counter.
 inline Uint32 EnumerationContext::incConsecutiveZeroLenObjectResponseCounter()
 {
     _totalZeroLenObjectResponseCounter++;
-    return _consecutiveZeroLenObjectResponseCounter++;
+    return ++_consecutiveZeroLenObjectResponseCounter;
 }
 inline void EnumerationContext::clearConsecutiveZeroLenObjectResponseCounter()
 {

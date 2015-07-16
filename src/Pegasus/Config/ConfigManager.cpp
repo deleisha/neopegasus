@@ -1074,16 +1074,15 @@ Boolean ConfigManager::isValidUint32Value(const String& strValue,
     Uint32 min,
     Uint32 max)
 {
-    Uint64 v;
-    Boolean rtn =
-        (StringConversion::decimalStringToUint64(strValue.getCString(), v) &&
-            StringConversion::checkUintBounds(v, CIMTYPE_UINT32));
+    Uint32 v;
+    Boolean rtn = StringConversion::decimalStringToUint32(strValue, v);
     if (rtn && ( (v >= min) && (v <= max)) )
     {
         return true;
     }
     return false;
 }
+
 Array<HostAddress> ConfigManager::getListenAddress(const String &propertyValue)
 {
     Array<String> interfaces = DefaultPropertyOwner::parseAndGetListenAddress (

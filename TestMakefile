@@ -325,6 +325,8 @@ endif
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile startcimListenAddress
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_interfaceRestrictionTest
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_providerReregisterTests 
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ENUMCTXT_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ENUMCTXT_TS2
 
 #####################
 #
@@ -861,6 +863,7 @@ IDLE_CONNECTION_TIMEOUT_1_TEST_CMDS = \
 	$(MAKE)@@--directory \
             $(PEGASUS_ROOT)/src/Providers/TestProviders/ChunkingStressProvider/testclient \
             -f@@Makefile@@poststarttests
+
 run_idleConnectionTimeout1: FORCE
 	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
             CIMSERVER_CONFIG_OPTIONS="$(IDLE_CONNECTION_TIMEOUT_1_CONFIG_OPTIONS)" \
@@ -944,6 +947,77 @@ run_Cmpi_Sub: FORCE
 
 ##############################################################################
 
+###############################################################################
+##  EnumerationContext Black Box test 1
+##
+##  Configuration Options: Run with trace on and at least EnumContext compent
+##                         set.  Trace output used to diagnose results
+##                         Run with forceProviderProcesses=true
+##  Runs a test of pull operations and tests the trace output to determine if
+##  it includes an equal number of create and remove trace entries indicating
+##  that all enumerations contexts completed. Note that today the code that
+##  tests the trace results is a sh script and grep so this runs only on
+##  systems that have these tools
+##  This test was added in OpenPegasus 2.14 when the pull operations were 
+##  added
+##
+###############################################################################
+ENUMCTXT_TS1_CONFIG_OPTIONS = traceComponents=EnumContext traceLevel=4 forceProviderProcesses=true
+
+ENUMCTXT_TS1A_TEST_CMDS = \
+	$(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Pegasus/Client/tests/pullop -f@@Makefile poststarttests
+
+ENUMCTXT_TS1B_TEST_CMDS = \
+	$(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Pegasus/Client/tests/PullErrors -f@@Makefile poststarttests
+
+ENUMCTXT_POSTTEST_CMD = $(PEGASUS_ROOT)/src/Pegasus/Client/tests/pullop/testContextTraceOutput
+
+run_ENUMCTXT_TS1:
+ifeq ($(findstring LINUX_, $(PEGASUS_PLATFORM)), LINUX_)
+	$(RM) $(PEGASUS_HOME)/trace/*
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(ENUMCTXT_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(ENUMCTXT_TS1A_TEST_CMDS)"
+	$(ENUMCTXT_POSTTEST_CMDS)
+
+	$(RM) $(PEGASUS_HOME)/trace/*
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(ENUMCTXT_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(ENUMCTXT_TS1B_TEST_CMDS)"
+	$(ENUMCTXT_POSTTEST_CMD)
+else
+	@ $(ECHO) "+++++ run_ENUMCTXT_TS1 runs only in certain environments"
+endif
+###############################################################################
+
+###############################################################################
+##  EnumerationContext Black Box test 2
+##  Parallel to ENUMCTXT_TS1 except with forceProviderProcesses=false
+##
+###############################################################################
+ENUMCTXT_TS2_CONFIG_OPTIONS = traceComponents=EnumContext traceLevel=4 forceProviderProcesses=false
+
+## uses the test commands from run_ENUMCTXT_TS1
+
+run_ENUMCTXT_TS2:
+ifeq ($(findstring LINUX_, $(PEGASUS_PLATFORM)), LINUX_)
+	$(RM) $(PEGASUS_HOME)/trace/*
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(ENUMCTXT_TS2_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(ENUMCTXT_TS1A_TEST_CMDS)"
+	$(ENUMCTXT_POSTTEST_CMDS)
+
+	$(RM) $(PEGASUS_HOME)/trace/*
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(ENUMCTXT_TS2_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(ENUMCTXT_TS1B_TEST_CMDS)"
+	$(ENUMCTXT_POSTTEST_CMD)
+else
+	@ $(ECHO) "+++++ run_ENUMCTXT_TS1 runs only in certain environments"
+endif
+###############################################################################
 
 #############################################################################
 ##
@@ -1376,6 +1450,7 @@ tracecomp: FORCE
 	$(USAGE)"Listener"
 	$(USAGE)"DiscardedData"
 	$(USAGE)"ProviderAgent"
+	$(USAGE)"EnumContext"
 	$(USAGE)
 
 ###############################################################################

@@ -153,7 +153,9 @@ public:
     */
     void dispatchTimerThread();
 
-    // Diagnostic tests magic number in context to see if valid
+    // Diagnostic tests magic number in context to see if valid. This
+    // catches use after release since the deconstructor destroys the
+    // magic number
     bool valid();
 
     // This diagnostic validates
@@ -213,7 +215,15 @@ private:
     bool _removeContext(EnumerationContext* en);
 
     // Return the next Numeric counter value for ContextId
-    Uint32 getNextId();
+    Uint32 _getNextId();
+
+    // Clean up one active timedout context.  This function tries to
+    // continue the processing by either issuing an empty response if
+    // the operation is processing and there is a delayed response outstanding
+    // or if the client is closed, it just kicks the provider side.
+    // Note that with enough calls on a single context, we finally give
+    // up and just close the context.
+    void _cleanActiveContext(EnumerationContext* en);
 
     // Enumeration Context objects are maintained in the following
     // Pegasus hash table.
@@ -244,11 +254,11 @@ private:
     static Mutex _defaultOperationTimeoutSecMutex;
 #endif
 
-    // Systemwide highwater mark of number of objects in context cache
+    // System-wide highwater mark of number of objects in context cache
     Uint32 _cacheHighWaterMark;
-
     Uint32 _responseObjectCountHighWaterMark;
 
+    Uint64 _totalObjectsReturned;
     // Count of enumerations Opened total since last statistics reset
     Uint64 _enumerationContextsOpened;
 
@@ -262,14 +272,16 @@ private:
     // Maximum limit on number of open contexts. Tested on each create
     Uint32 _maxOpenContextsLimit;
 
-    // KS_TODO this statistic not implemented.
-    Uint64 _requestsPerEnumerationSequence;
-
+    // Statistics on requests per enumeration sequence.
+    Uint32 _highWaterRequestsPerSequence;
+    Uint64 _totalRequestsPerSequence;
+    Uint32 _sequencesClosed;
 
     // Statistic to keep track of average size requested for all
     // operations.
     Uint64 _requestedSize;
     Uint64 _requestCount;
+
     Uint32 _getAvgRequestSize()
     {
         return (Uint32)((_requestCount != 0)?
@@ -278,11 +290,27 @@ private:
             0);
     }
 
+    Uint32 _getAvgResponseSize()
+    {
+        return (Uint32)((_requestCount != 0)?
+            (_totalObjectsReturned / _requestCount)
+            :
+            0);
+    }
+    Uint32 _getAvgRequestsPerSequence()
+    {
+        return (Uint32)((_sequencesClosed != 0)?
+            (_totalRequestsPerSequence / _sequencesClosed)
+            :
+            0);
+    }
+
     // Total number of delayed responses generated
     Uint64 _totalZeroLenDelayedResponses;
 
     // Numeric Counter for ContextId numeric values
-    AtomicInt _nextContextIdCounter;
+    Mutex _countextIdCounterMutex;
+    Uint32 _contextIdCounter;
 
     // magic number that acts as validator of enumerationContextTable
     Magic<0x57D11474> _magic;
@@ -292,10 +320,10 @@ private:
   Inline Implementations for the EnumerationContextTable Class functions
 ******************************************************************/
 
-inline Uint32 EnumerationContextTable::getNextId()
+inline Uint32 EnumerationContextTable::_getNextId()
 {
-    _nextContextIdCounter++;
-    return _nextContextIdCounter.get();
+    AutoMutex autoMut(_countextIdCounterMutex);
+    return ++_contextIdCounter;
 }
 
 //

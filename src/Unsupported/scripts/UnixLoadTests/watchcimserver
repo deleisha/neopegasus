@@ -70,6 +70,7 @@ Usage: $(basename $0) - Watch the cimserver and display statistics on a regular
 	           hours or days. (i.e 3d will run the test for 3 days).
 	           m is same as pure numeric.  This is accumulative so that
 	               -t 1d -t30m would end in 1 day + 30 minutes.
+    -d         Additional details in to a detail file. ex pmap output
 EOF
 }
 
@@ -84,9 +85,10 @@ declare -i STOPTIME_MIN
 STOPTIME_MIN=0          # time in min when script will stop
 STOPTIME_SEC=0          # absolute time in sec when script stops
 WATCHPROVAGT=p          # default p, watch only this process
+DETAILS=0
 
 ## define the ps command output data set
-PSOUTFMT="-o pid,rss,vsz,pmem,pcpu,nlwp,cputime,stime,time,sz,comm"
+PSOUTFMT="-o pid,rss,vsz,pmem,pcpu,nlwp,cputime,stime,etime,sz,comm"
 
 ## Define variables to capture the min and max for RSS
 MAX_RSS=0
@@ -124,7 +126,7 @@ trap control_c SIGINT
 ################################################################
 ##  Scan input options
 ##
-while getopts "hvw:sf:i:t:pV" OPTION
+while getopts "hvw:sf:i:t:pVd" OPTION
 do 
      case $OPTION in 
      h)  usage 
@@ -135,6 +137,9 @@ do
          ;;
 
 	 s)  STARTSERVER=1
+	     ;;
+
+	 d)  DETAILS=1
 	     ;;
 
      f)  OUTPUTFILENAME=$OPTARG
@@ -167,15 +172,15 @@ do
                STOPTIME_MIN+=$((addTime))
                STOPTIME_MIN=${STOPTIME_MIN#0}
                ;;
+
             * ) echo ERROR: Option -t $STOPTIME_MIN incorrect
                 exit 1
                ;;
 	     esac
 
 	     ## set the time for the watchcimserver to stop in sec
-             STOPTIME_SEC=$(date +%s --date="now + $STOPTIME_MIN min")
-
-             ;;
+         STOPTIME_SEC=$(date +%s --date="now + $STOPTIME_MIN min")
+         ;;
 
          ?) usage 
              exit 
@@ -221,6 +226,8 @@ for Name in ${PROCNAMEARRAY[@]}
 do
     echo testing for process name $Name
     CIMSERVER_PID=$(ps -C $Name --no-headers -o pid | head -1)
+    ## remove possible 2 blanks at front of PID (3 and 4 char pids)
+    CIMSERVER_PID="${CIMSERVER_PID## }"
     CIMSERVER_PID="${CIMSERVER_PID## }"
     echo Process=$Name PID=$CIMSERVER_PID
 
@@ -272,9 +279,19 @@ do
         echo
         ps $PSOUTFMT -$WATCHPROVAGT $CIMSERVER_PID  | tee $OUTPUTFILENAME
 	    FIRSTPASS=0
+        if [[ $DETAILS -eq 1 ]]; then
+            ps $PSOUTFMT -$WATCHPROVAGT $CIMSERVER_PID >$OUTPUTFILENAME
+            pmap $CIMSERVER_PID >>$OUTPUTFILENAME.DETAILS.TXT
+            echo ====================== >>$OUTPUTFILENAME.DETAILS.TXT
+        fi
     else
         ## after first pass, discard header line.
         ps --no-headers $PSOUTFMT -$WATCHPROVAGT  $CIMSERVER_PID | tee -a $OUTPUTFILENAME
+        if [[ $DETAILS -eq 1 ]]; then
+            ps --no-headers $PSOUTFMT -$WATCHPROVAGT $CIMSERVER_PID >>$OUTPUTFILENAME
+            pmap $CIMSERVER_PID >>$OUTPUTFILENAME.DETAILS.TXT
+            echo ====================== >>$OUTPUTFILENAME.DETAILS.TXT
+        fi
     fi
 
     ## compute the highwater and lowwater marks for RSS

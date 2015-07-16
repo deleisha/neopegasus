@@ -34,6 +34,7 @@
 #include <Pegasus/Common/Linkage.h>
 #include <Pegasus/Common/CIMType.h>
 #include <cctype>
+#include <Pegasus/Common/String.h>
 
 PEGASUS_NAMESPACE_BEGIN
 
@@ -149,7 +150,7 @@ public:
     */
     static Boolean binaryStringToUint64(
         const char* stringValue,
-        Uint64& x, 
+        Uint64& x,
         Boolean allowLeadingZeros = false);
 
     /**
@@ -214,7 +215,40 @@ public:
         const char* stringValue,
         Uint64& x);
 
+    /**
+        If the string reperesentation is valid decimal, converts it and
+        returns value in valueUint32 parameter.
+        @param  StringWithValue   const char * valid decimal string
+                                  representation of a Uint32
+        @param  valueUint32       Returns the value as Uint32.
+        @return Boolean           True if input string is a valid decimal
+                                  Uint32. Otherwise returns false and
+                                  sets valueUint32 to 0. Returns error
+                                  if the input string parameter is empty
+    */
+    static Boolean decimalStringToUint32(
+        const char * StringWithValue,
+        Uint32& uint32Value );
+
+    /**
+        Same as above but with Pegasus String input
+    */
+    static Boolean decimalStringToUint32(
+        const String& StringWithValue,
+        Uint32& uint32Value);
 };
+
+/******************************************************************
+   inline functions
+*******************************************************************/
+inline Boolean StringConversion::decimalStringToUint32(
+        const String& StringWithValue,
+        Uint32& uint32Value)
+{
+    return StringConversion::decimalStringToUint32(
+        StringWithValue.getCString(),
+        uint32Value);
+}
 
 PEGASUS_NAMESPACE_END
 

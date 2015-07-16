@@ -1219,7 +1219,6 @@ int main(int argc, char** argv)
                 break;
             }
         }
-
     }
 
     {
@@ -1310,6 +1309,7 @@ int main(int argc, char** argv)
             }
         }
     }
+
     {
         testEnumSequence tczerotest(client, "test/TestProvider");
         tczerotest.setTestName("excessive consecutive zero length responses ");
@@ -1343,6 +1343,36 @@ int main(int argc, char** argv)
         PEGASUS_ASSERT(tc.openEnumerateInstances());
     }
 
+    {
+        // Just make sure we can receive good responses
+        // Test for a complete sequence that works.
+        testEnumSequence tcgood(client, "test/TestProvider");
+        tcgood.setTestName("Good complete open/pull response");
+        tcgood._className =  "TST_ResponseStressTestCxx";
+        tcgood._maxObjectCount = 1;
+        //tcgood._cimObjectName = "CMPI_TEST_Person.name=\"Melvin\"";
+        PEGASUS_ASSERT(tcgood.openEnumerateInstances());
+        while(tcgood._endOfSequence == false)
+        {
+            PEGASUS_ASSERT(tcgood.pullInstancesWithPath());
+        }
+    }
+
+    {
+        // Test for a complete sequence that works.
+        testEnumSequence tcgood(client, "test/TestProvider");
+        tcgood.setTestName("Good complete open/pull response");
+        tcgood._className =  "TST_ResponseStressTestCxx";
+        tcgood._maxObjectCount = 1;
+        PEGASUS_ASSERT(tcgood.openEnumerateInstancePaths());
+        while(tcgood._endOfSequence == false)
+        {
+            PEGASUS_ASSERT(tcgood.pullInstancePaths());
+        }
+    }
+    // Added to help server clean up all enum contexts before shutdown
+    // Used to insure that the TestMakefile test works.
+    System::sleep(30);
     cout << argv[0] <<" +++++ passed all tests" << endl;
     return 0;
 }

@@ -41,6 +41,7 @@
 #include <Pegasus/Common/Tracer.h>
 #include <Pegasus/General/Stopwatch.h>
 #include <Pegasus/Common/Thread.h>
+#include <Pegasus/Common/System.h>
 
 
 PEGASUS_USING_STD;
@@ -89,6 +90,7 @@ EnumerationContext::EnumerationContext(const String& contextId,
     :
     _cimException(CIMException()),
     _savedRequest(NULL),             // Clear because used as a flag
+    _savedResponse(NULL),
     _contextId(contextId),
     _nameSpace(nameSpace),
     _operationTimeoutSec(interOperationTimeoutValue),
@@ -283,7 +285,9 @@ void EnumerationContext::trace()
         "totalWaitTimeUsec=%llu "
         "maxWaitTimeUsec=%llu "
         "RequestedResponseObjectCount=%u "
-        "totalZeroLenObjectResponseCounter=%u",
+        "consecutiveZeroLenObjectResponseCtr=%u "
+        "totalZeroLenObjectResponseCounter=%u"
+        "ResponseCacheSize=%u",
         *Str(getContextId()),
         _operationTimeoutSec,
         (long unsigned int)_operationTimerUsec,
@@ -301,7 +305,9 @@ void EnumerationContext::trace()
         _totalWaitTimeUsec,
         _maxWaitTimeUsec,
         _requestedResponseObjectsCount,
-        _totalZeroLenObjectResponseCounter ));
+        _consecutiveZeroLenObjectResponseCounter,
+        _totalZeroLenObjectResponseCounter,
+         responseCacheSize()));
 }
 
 /**
@@ -346,6 +352,7 @@ bool EnumerationContext::putCache(CIMResponseMessage*& response,
     CIMResponseDataMessage* localResponse =
         dynamic_cast<CIMResponseDataMessage*>(response);
     CIMResponseData & from = localResponse->getResponseData();
+    //// from.traceResponseData();
 
     // If there is any binary data, reformat it to SCMO.  There are no
     // size counters for the binary data so reformat to generate
@@ -353,19 +360,52 @@ bool EnumerationContext::putCache(CIMResponseMessage*& response,
     if (from.hasBinaryData())
     {
         from.resolveBinaryToSCMO();
+        //// from.traceResponseData();
     }
 
 #ifdef ENUMERATION_CONTEXT_DIAGNOSTIC_TRACE
     PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL4,
-        "putCache, ContextId=%s isComplete=%s ResponseDataType=%u "
-            " cacheSize=%u putSize=%u clientClosed=%s",
+        "putCache, ContextId=%s isComplete=%s cacheResponseDataType=%u "
+            " cacheSize=%u putSize=%u putResponseDataType=%u clientClosed=%s",
         *Str(getContextId()),
         boolToString(providersComplete),
         _responseCache.getResponseDataContent(),
-        _responseCache.size(), from.size(),
+        _responseCache.size(), from.size(), from.getResponseDataContent(),
         boolToString(_clientClosed)));
 #endif
 
+    // This test should not be required.  Somewhere in the processing there
+    // is a rare return of an erronous response from OOP. This covers that
+    // case until we find the issue.  It issues an error a discard trace
+    if (from.getResponseDataContent()!=_responseCache.getResponseDataContent())
+    {
+        PEG_TRACE((TRC_DISCARDED_DATA, Tracer::LEVEL2,
+            "Pull Provider Response DataContentType in error. cacheType=%u "
+            "responseType=%u "
+            "ResponseMsgType=%s ContextId=%s",
+            _responseCache.getResponseDataContent(),
+            from.getResponseDataContent(),
+            MessageTypeToString(response->getType()),
+            *Str(getContextId()) ));
+        trace();
+        // This is temp for testing. KS_TODO delete this console display
+        //// cout << System::getCurrentASCIITime()
+        ////      << "Error CIMResponseDataMismatch "
+        ////     << getContextId() << endl;
+
+        CIMException sysErr = CIMException(CIM_ERR_FAILED,
+            "Internal Error in EnumerationContext processing");
+        setErrorState(sysErr);
+        // Output warning log to indicate that this system failure has occurred
+
+        Logger::put(
+                Logger::ERROR_LOG, System::CIMSERVER, Logger::WARNING,
+                "Response msg data type mismatch from providers."
+                "Internal Error in EnumerationContext processing. "
+                " ContextId=", *Str(getContextId() ));
+        return _clientClosed;
+
+    }
     // If an operation has closed the enumerationContext
     // ignore any received responses until the providersComplete is received
     // and then remove the Context.
@@ -536,8 +576,10 @@ bool EnumerationContext::getCache(Uint32 count, CIMResponseData& rtnData)
     // Move the defined number of objects from the cache to the return object.
     rtnData.moveObjects(_responseCache, count);
 
-    // add to statistics for this enumerationContext
+    // add to statistics for this enumerationContext. Counts objects actuallly
+    // sent.
     _responseObjectsCount += rtnData.size();
+    // Accumulation of count of request maxObjectCounts
     _requestedResponseObjectsCount += count;
 
 #ifdef ENUMERATION_CONTEXT_DIAGNOSTIC_TRACE
@@ -644,13 +686,14 @@ void EnumerationContext::setClientClosed()
     PEGASUS_DEBUG_ASSERT(valid());
 
     _clientClosed = true;
+    _processing = false;
 
 #ifdef ENUMERATION_CONTEXT_DIAGNOSTIC_TRACE
     PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL3,
         "setClientClosed. ContextId=%s ", *Str(getContextId()) ));
 #endif
 
-    // Clear any existing responses out of the cache.  The will never
+    // Clear any existing responses out of the cache.  They will never
     // be used.
     _responseCache.clear();
 
@@ -659,6 +702,10 @@ void EnumerationContext::setClientClosed()
         // Signal that cache size has dropped.
         signalProviderWaitCondition();
     }
+
+#ifdef ENUMERATION_CONTEXT_DIAGNOSTIC_TRACE
+    trace();
+#endif
 }
 
 const char* EnumerationContext::processingState()

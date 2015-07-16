@@ -360,6 +360,27 @@ void HTTPConnection::handleEnqueue(Message *message)
         PEG_METHOD_EXIT();
         return;
     }
+    // Lock monitor mutex before executing the message because, as part of the
+    // processing, HTTPConnection calls back to the monitor to set
+    // status (monitor::setStatus(...).
+    // See bug 10044
+    // monitor::setStatus() sets the monitor lock which, without this prior
+    // monitor lock could result in a deadlock for HTTPConnection calls from
+    // other threads. For example:
+    //
+    // monitor->_entriesLockMutex->dst->run-> httpConnection::run()
+    // creates SocketMsg-> handleEnqueue-> _handleReadEvent->
+    // Monitor::setstate(...)
+    //
+    // CIMOperationResponseEncoder::sendResponse->handleEnqueue->
+    // _handleWriteEvent->(lock HTTPconnection->_closeConnection()
+    //     Monitor::setState->_entriesMutex -- Deadlock
+    //
+    // TODO: There may be a more efficient way to handle this interaction than
+    // completely mutual exclusion of the monitor and HTTPConnection but this
+    // does remove the chance of deadlock. Today we are not sure what the
+    // effect would be of another way to handle the setState
+    AutoMutex monitorLock(_monitor->getLock());
 
     AutoMutex connectionLock(_connection_mut);
 
@@ -494,7 +515,7 @@ Boolean HTTPConnection::_handleWriteEvent(HTTPMessage& httpMessage)
         {
             if (isFirst == true)
             {
-                _incomingBuffer.clear();
+                _outgoingBuffer.clear();
                 // tracks the message coming from above
                 _transferEncodingChunkOffset = 0;
                 _mpostPrefix.clear();
@@ -583,16 +604,16 @@ Boolean HTTPConnection::_handleWriteEvent(HTTPMessage& httpMessage)
                 {
                     // subsequent chunks from the server, just append
 
-                    messageLength += _incomingBuffer.size();
-                    _incomingBuffer.reserveCapacity(messageLength+1);
-                    _incomingBuffer.append(buffer.getData(), buffer.size());
+                    messageLength += _outgoingBuffer.size();
+                    _outgoingBuffer.reserveCapacity(messageLength+1);
+                    _outgoingBuffer.append(buffer.getData(), buffer.size());
                     buffer.clear();
                     // null terminate
-                    messageStart = (char *) _incomingBuffer.getData();
+                    messageStart = (char *) _outgoingBuffer.getData();
                     messageStart[messageLength] = 0;
                     // put back in buffer, so the httpMessage parser can work
                     // below
-                    _incomingBuffer.swap(buffer);
+                    _outgoingBuffer.swap(buffer);
                 }
 
                 if (isLast == false)
@@ -607,7 +628,7 @@ Boolean HTTPConnection::_handleWriteEvent(HTTPMessage& httpMessage)
                     {
                         buffer.clear();
                         // discard all data collected to this point
-                        _incomingBuffer.clear();
+                        _outgoingBuffer.clear();
                         String messageS = cimException.getMessage();
                         CString messageC = messageS.getCString();
                         messageStart = (char *) (const char *) messageC;
@@ -675,7 +696,7 @@ Boolean HTTPConnection::_handleWriteEvent(HTTPMessage& httpMessage)
                         messageLength =
                             contentLanguagesString.size() + buffer.size();
 
-                        // Adding 8 bytes to capacity, since in the 
+                        // Adding 8 bytes to capacity, since in the
                         // binary case we might add up to 7 null bytes
                         buffer.reserveCapacity(messageLength+8);
                         messageLength = contentLanguagesString.size();
@@ -697,11 +718,11 @@ Boolean HTTPConnection::_handleWriteEvent(HTTPMessage& httpMessage)
                             // add bytes if old is smaller than new
                             // if new and old amount equal -> do nothing
 
-                            // ((a+7) & ~7) <- round up to the next highest 
+                            // ((a+7) & ~7) <- round up to the next highest
                             // number dividable by eight
                             Uint32 extraNullBytes =
                                 ((headerLength + 7) & ~7) - headerLength;
-                            Uint32 newHeaderSize = 
+                            Uint32 newHeaderSize =
                                 headerLength+contentLanguagesString.size();
                             Uint32 newExtraNullBytes =
                                 ((newHeaderSize + 7) & ~7) - newHeaderSize;
@@ -714,12 +735,12 @@ Boolean HTTPConnection::_handleWriteEvent(HTTPMessage& httpMessage)
                                     messageLength,
                                     extraNullBytes-newExtraNullBytes);
 
-                                contentLength -= 
+                                contentLength -=
                                     (extraNullBytes-newExtraNullBytes);
                             }
                             else
                             {
-                                Uint32 reqNullBytes = 
+                                Uint32 reqNullBytes =
                                     newExtraNullBytes - extraNullBytes;
                                 contentLanguagesString << headerLineTerminator;
                                 messageLength += headerLineTerminatorLength;
@@ -884,9 +905,9 @@ Boolean HTTPConnection::_handleWriteEvent(HTTPMessage& httpMessage)
             }
 
             // the data is sitting in buffer, but we want to cache it in
-            // _incomingBuffer because there may be more chunks to append
+            // _outgoingBuffer because there may be more chunks to append
             if (isChunkRequest == false)
-                _incomingBuffer.swap(buffer);
+                _outgoingBuffer.swap(buffer);
 
         } // if not a client
 
@@ -1126,7 +1147,7 @@ Boolean HTTPConnection::_handleWriteEvent(HTTPMessage& httpMessage)
 
     if (isLast == true)
     {
-        _incomingBuffer.clear();
+        _outgoingBuffer.clear();
         _transferEncodingTEValues.clear();
 
         // Reset the transfer encoding chunk offset. If it is not reset here,

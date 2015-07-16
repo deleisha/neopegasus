@@ -64,7 +64,9 @@
 PEGASUS_NAMESPACE_BEGIN
 PEGASUS_USING_STD;
 
-#define XCOUT if (true) cout << __FILE__ << ":" << __LINE__ << " "
+#ifndef XCOUT
+#    define XCOUT if (true) cout << __FILE__ << ":" << __LINE__ << " "
+#endif
 
 // KS_TODO. Replace the CSTRING args with the Str class implementaiton
 #define CSTRING(ARG) (const char*) ARG.getCString()
@@ -998,6 +1000,15 @@ Boolean CIMOperationRequestDispatcher::_enqueueResponse(
                 // return true, just discards everything.
                 return true;
             }
+            else
+            {
+                EnumerationContext* ent = _enumerationContextTable->find(
+                    poA->_contextId);
+                PEGASUS_DEBUG_ASSERT(ent == en);
+            }
+
+            PEGASUS_DEBUG_ASSERT(poA->_contextId == en->getContextId());
+
             // When provider response receved, clear this counter.
             en->clearConsecutiveZeroLenObjectResponseCounter();
 
@@ -1046,6 +1057,17 @@ Boolean CIMOperationRequestDispatcher::_enqueueResponse(
                         en->_savedResponse = NULL;
                         en->_savedOperationMaxObjectCount = 0;
                     }
+                }
+            }
+            else
+            {
+                if (en->_savedRequest != NULL)
+                {
+                    delete en->_savedRequest;
+                    delete en->_savedResponse;
+
+                    en->_savedRequest = NULL;
+                    en->_savedResponse = NULL;
                 }
             }
 
@@ -1942,14 +1964,14 @@ void CIMOperationRequestDispatcher::_forwardedForAggregationCallback(
         service->return_op(op);
     }
 
-    // After resequencing, this flag represents the completion status of
-    // the ENTIRE response to the request.
     // KS_TODO this is a temporary diagnostic. Remove before release
     if (poA->_pullOperation)
     {
         PEGASUS_DEBUG_ASSERT(poA->_enumerationContext);
     }
 
+    // After resequencing, this flag represents the completion status of
+    // the ENTIRE response to the request.
     // Call the response handler for aggregating responses
     Boolean entireResponseIsComplete = service->_enqueueResponse(poA, response);
 
@@ -3099,13 +3121,11 @@ bool CIMOperationRequestDispatcher::_rejectIfContextTimedOut(
     {
         CIMResponseMessage* response = request->buildResponse();
 
-        CIMException cimException = PEGASUS_CIM_EXCEPTION_L(
+        response->cimException = PEGASUS_CIM_EXCEPTION_L(
             CIM_ERR_INVALID_ENUMERATION_CONTEXT, MessageLoaderParms(
                 "Server.CIMOperationRequestDispatcher."
                     "ENUMERATION_CONTEXT_TIMED_OUT",
                 "Enumeration Context timed out before request received."));
-
-        response->cimException = cimException;
 
         _enqueueResponse(request, response);
 
@@ -3137,7 +3157,7 @@ void CIMOperationRequestDispatcher::_rejectCreateContextFailed(
 {
     CIMResponseMessage* response = request->buildResponse();
 
-    CIMException cimException = PEGASUS_CIM_EXCEPTION_L(
+    response->cimException = PEGASUS_CIM_EXCEPTION_L(
         CIM_ERR_SERVER_LIMITS_EXCEEDED, MessageLoaderParms(
             "Server.CIMOperationRequestDispatcher."
                 "ENUMERATION_CONTEXT_EXCEEDED_LIMIT",
@@ -3617,7 +3637,7 @@ bool CIMOperationRequestDispatcher::processPullRequest(
     }
     // KS_TODO determine if this is worthwhile trace
     PEG_TRACE((TRC_DISPATCHER, Tracer::LEVEL4,  // EXP_PULL_TEMP
-        "%s get from cache. ContextId=%s isComplete=%s cacheSize:=%u "
+        "%s get from cache. ContextId=%s isComplete=%s cacheSize=%u "
             "errorState=%s",
         requestName,
         (const char *)en->getContextId().getCString(),
@@ -3665,6 +3685,9 @@ bool CIMOperationRequestDispatcher::issueOpenOrPullResponseMessage(
         "CIMOperationRequestDispatcher::_issueOpenOrPullResponseMessage");
 
     PEGASUS_ASSERT(en->valid());
+
+    PEGASUS_ASSERT(en->_savedRequest == NULL);
+    PEGASUS_ASSERT(en->_savedResponse == NULL);
 
     bool releaseRequest = true;
     en->lockContext();

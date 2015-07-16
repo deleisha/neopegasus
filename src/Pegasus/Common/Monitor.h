@@ -276,6 +276,7 @@ public:
      */
     void stopListeningForConnections(Boolean wait);
 
+    Mutex& getLock();
 private:
 
     Array<MonitorEntry> _entries;

@@ -53,6 +53,7 @@ LIBRARIES += peggetoopt
 EXTRA_INCLUDES = $(SYS_INCLUDES)
 
 PROGRAM = pullop
+CLI = cimcli
 
 SOURCES = pullop.cpp
 
@@ -89,6 +90,10 @@ tests:
 	pullop -h
 	$(PROGRAM) --help
 
+##################################################################
+##
+##  All poststart tests
+##
 poststarttests:
         ## reset the Stress provider behavior to the default
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
@@ -112,6 +117,7 @@ poststarttests:
 	make poststarttests_testDelayedResponses
 
 	@$(ECHO) +++++ All pullop Pull Operation tests Passed.
+
 
 ########################################################################
 ## Error tests. Each test is for a single CIMException type and
@@ -326,26 +332,23 @@ stressEnumei:
 stressEnum1:
 	cimcli im $(STRESSCXX_CLASS_ID) set Size=10000 \
 	    ResponseCount=10000 $(CIMCLIHOSTID)
-	$(PROGRAM) e -c $(STRESSCXX_CLASS_ID) -C \
-	    -y 120 \
+	$(PROGRAM) e -c $(STRESSCXX_CLASS_ID) -C -y 120 \
 	    -P Pattern -P s1 -P Id -P SequenceNumber \
 	    -T $(DSP) $(HOSTID)
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
 
 ## test with 100,000 returned instances of 1000 bytes each
 stressEnum2:
-	cimcli im $(STRESSCXX_CLASS_ID) set Size=1000 \
-	    ResponseCount=30000 $(CIMCLIHOSTID)
-	$(PROGRAM) e -c $(STRESSCXX_CLASS_ID) -C -y 120\
-	    -P Pattern -P s1 -P Id -P SequenceNumber \
-	    -T $(DSP) $(HOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) set Size=1000 ResponseCount=30000 $(CIMCLIHOSTID)
+	$(PROGRAM) e -c $(STRESSCXX_CLASS_ID) -C -y 120  \
+	    -P Pattern -P s1 -P Id -P SequenceNumber -T $(DSP) $(HOSTID)
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
 
 ## test with 100,000 returned instances of 1000 bytes each
 stressEnum3:
-	cimcli im $(STRESSCXX_CLASS_ID) set Size=1000 \
+	cimcli im $(STRESSCXX_CLASS_ID) set Size=1000  \
 	    ResponseCount=100000 $(CIMCLIHOSTID)
-	$(PROGRAM) e -c $(STRESSCXX_CLASS_ID)  -C -y 120\
+	$(PROGRAM) e -c $(STRESSCXX_CLASS_ID)  -C -y 120  \
 	    -P Pattern -P s1 -P Id -P SequenceNumber \
 	    -T $(DSP) $(HOSTID)
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
@@ -361,16 +364,14 @@ stressEnumName1:
 ## get 30,000 object paths, Size does not count since we are returning
 ## object paths only
 stressEnumName2:
-	cimcli im $(STRESSCXX_CLASS_ID) set Size=1000 \
-	    ResponseCount=30000 $(CIMCLIHOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) set Size=1000 ResponseCount=30000 $(CIMCLIHOSTID)
 	$(PROGRAM) en -c $(STRESSCXX_CLASS_ID) -C -y 120 -T $(DSP) $(HOSTID)
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
 
 ## get 100,000 object paths, Size does not count since we are returning
 ## object paths only
 stressEnumName3:
-	cimcli im $(STRESSCXX_CLASS_ID) set  Size=1000 \
-	    ResponseCount=100000 $(CIMCLIHOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) set  Size=1000 ResponseCount=100000 $(CIMCLIHOSTID)
 	$(PROGRAM) en -c $(STRESSCXX_CLASS_ID) -C -y 120 -T $(DSP) $(HOSTID)
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
 
@@ -432,11 +433,39 @@ invalidAssocObjectPath:
 	$(PROGRAM) an -c Test_Person -R $(HOSTID)
 
 #########################################################################
-#### timeout test. Set interoptime to 2 sec and sleep to 10 sec. This
+#### Test various timeouts.
+####
+
+testtimeout: testClientTimeoutCLI testClientTimeoutPullop testInteropTimeout
+
+#### Client timeout. Test case where client timeout closes client between
+#### pull operations. This is a blackbox test. It tests the client but does
+#### not actually test the internals to determine that the server completely
+#### cleans up the enumeration contexts (ex. trace and check that contexts are
+#### removed). Sets delay between pull calls to 20 sec and client timeout to
+#### 10 sec.
+testClientTimeoutCLI:
+	cimcli im $(STRESSCXX_CLASS_ID) set Size=100 ResponseCount=1000 $(CIMCLIHOSTID)
+	cimcli pei $(STRESSCXX_CLASS_ID) $(CIMCLIHOSTID) -pullDelay 20 -mo 10 \
+        --timeout 10 --expExit 21
+	cimcli pni $(STRESSCXX_CLASS_ID) $(CIMCLIHOSTID) -pullDelay 20 -mo 10 \
+        --timeout 20 --expExit 21
+	cimcli im $(STRESSCXX_CLASS_ID) reset  $(CIMCLIHOSTID)
+
+#### -t interop timeout(sec), -y client timeout(sec) -s (client interop sleep
+#### between operations. -T show results of detailed timing of operations
+testClientTimeoutPullop:
+	cimcli im $(STRESSCXX_CLASS_ID) set Size=100 ResponseCount=1000 $(CIMCLIHOSTID)
+	$(PROGRAM) e -c $(STRESSCXX_CLASS_ID)  -M 1 -N 1 -t 2 -T -y 5 -s 10 -R $(HOSTID)
+	$(PROGRAM) e -c $(STRESSCXX_CLASS_ID)  -M 1 -N 1 -t 2 -T -y 5 -s 10 -R $(HOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) reset  $(CIMCLIHOSTID)
+
+#### Interop timeout test. Set interoptime to 2 sec and sleep to 10 sec. This
 #### test should timeout after the first pull. (-s defines time to sleep
 #### between operations for the provider)
-testtimeout:
+testInteropTimeout:
 	$(PROGRAM) e -c $(STRESSCXX_CLASS_ID)  -M 1 -N 1 -t 2 -T -t 5 -s 10 -R $(HOSTID)
+	$(PROGRAM) en -c $(STRESSCXX_CLASS_ID)  -M 1 -N 1 -t 2 -T -t 5 -s 10 -R $(HOSTID)
 
 ## corresponding test but with large response size. Not part of poststart
 ## tests because it changes the parameters of the stress test provider
@@ -673,20 +702,16 @@ rseipn:
 poststarttests_testDelayedResponses: testNoDelay testSmallDelayedResponse \
                                     testDelayedResponse
 testNoDelay:
-	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=500 Delay=0 \
-           $(CIMCLIHOSTID)
-	cimcli pei $(STRESSCXX_CLASS_ID) --sum -count 500 \
-	   --t $(CIMCLIHOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=500 Delay=0 $(CIMCLIHOSTID)
+	cimcli pei $(STRESSCXX_CLASS_ID) --sum -count 500 --t $(CIMCLIHOSTID)
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
 
 ## test for responses that are delayed but not so long that
 ## zero length responses are sent
 testSmallDelayedResponse:
 	$(ECHO) This test should take about 5 seconds total
-	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=500 Delay=5 \
-           $(CIMCLIHOSTID) 
-	cimcli pei $(STRESSCXX_CLASS_ID) --sum -v -count 500  \
-	   --t $(CIMCLIHOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=500 Delay=5 $(CIMCLIHOSTID) 
+	cimcli pei $(STRESSCXX_CLASS_ID) --sum -v -count 500 --t $(CIMCLIHOSTID)
         ## reset to restore zero delay
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
 
@@ -695,10 +720,8 @@ testSmallDelayedResponse:
 ## and return multiple zero-object responses
 testDelayedResponse:
 	$(ECHO) This test should take about 45 seconds.
-	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=295 Delay=45 \
-           $(CIMCLIHOSTID)
-	cimcli pei $(STRESSCXX_CLASS_ID) --sum -v -count 295 \
-	   --t $(CIMCLIHOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=295 Delay=45 $(CIMCLIHOSTID)
+	cimcli pei $(STRESSCXX_CLASS_ID) --sum -v -count 295 --t $(CIMCLIHOSTID)
 	# Restore zero delay
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
 
@@ -728,6 +751,7 @@ testMassiveDelayedResponse:
 
 ##################################################
 ## Test with pull operations in cimcli
+##
 cimclipei:
 	cimcli pei $(STRESSCXX_CLASS_ID) -mo 1 --sum $(CIMCLIHOSTID)
 	cimcli pni $(STRESSCXX_CLASS_ID) -mo 1 --sum  $(CIMCLIHOSTID)

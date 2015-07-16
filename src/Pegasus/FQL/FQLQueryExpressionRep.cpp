@@ -40,6 +40,7 @@ PEGASUS_NAMESPACE_BEGIN
 const CIMPropertyList FQLQueryExpressionRep::getPropertyList() const
 {
    PEGASUS_ASSERT(false);
+   return CIMPropertyList();
 }
 
 FQLQueryExpressionRep::~FQLQueryExpressionRep()

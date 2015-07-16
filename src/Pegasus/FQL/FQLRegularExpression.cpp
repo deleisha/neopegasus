@@ -57,7 +57,6 @@
 #include "FQLRegularExpression.h"
 #include <Pegasus/Common/Char16.h>
 #include <Pegasus/Common/CommonUTF.h>
-#include <regex.h>
 
 PEGASUS_USING_STD;
 

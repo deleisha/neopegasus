@@ -253,7 +253,7 @@ void _normalizeRealValueString(char* str, Uint32& size)
 void _normalizeRealValueString_NANandINF(char* str, Uint32& size)
 {
     if ((str[0]=='n' || str[0]=='N') &&
-            (str[1]=='a' || str[1]=='A') && 
+            (str[1]=='a' || str[1]=='A') &&
                 (str[2]=='n' || str[2]=='N'))
     {
         str[0] = 'n';
@@ -263,7 +263,7 @@ void _normalizeRealValueString_NANandINF(char* str, Uint32& size)
         size=3;
     }
     if ((str[0]=='i' || str[0]=='I') &&
-            (str[1]=='n' || str[1]=='N') && 
+            (str[1]=='n' || str[1]=='N') &&
                 (str[2]=='f' || str[2]=='F'))
     {
         str[0] = 'i';
@@ -273,7 +273,7 @@ void _normalizeRealValueString_NANandINF(char* str, Uint32& size)
         size=3;
     }
     if ((str[0]=='-') && (str[1]=='i' || str[1]=='I') &&
-            (str[2]=='n' || str[2]=='N') && 
+            (str[2]=='n' || str[2]=='N') &&
                 (str[3]=='f' || str[3]=='F'))
     {
         str[0] = '-';
@@ -464,7 +464,7 @@ Boolean StringConversion::hexStringToUint64(
     {
         return false;
     }
-   
+
     if ((p[0] != '0') || ((p[1] != 'x') && (p[1] != 'X')))
     {
         return false;
@@ -776,6 +776,23 @@ Boolean StringConversion::stringToReal64(
     x = strtod(stringValue, &end);
 
     return (!*end && (errno != ERANGE));
+}
+
+Boolean StringConversion::decimalStringToUint32(
+    const char * StringWithValue,
+    Uint32& uint32Value  )
+{
+    Uint64 val;
+
+    Boolean retCode = StringConversion::decimalStringToUint64(
+                                        StringWithValue,
+                                        val)
+                       && StringConversion::checkUintBounds(val,
+                                                            CIMTYPE_UINT32);
+
+    uint32Value = retCode? (Uint32)val : 0;
+
+    return retCode;
 }
 
 PEGASUS_NAMESPACE_END

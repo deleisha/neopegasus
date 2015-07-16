@@ -126,7 +126,6 @@ Boolean TracePropertyOwner::isLevelValid(const String& traceLevel) const
             traceLevel == "4" || traceLevel == "5");
 }
 
-
 //
 // Get the appropriate trace level
 //
@@ -257,7 +256,7 @@ void TracePropertyOwner::initialize()
             PEGASUS_ASSERT(_traceMemoryBufferKbytes->defaultValue.size()!= 0);
 
             Uint32 bufferSize;
-            Tracer::tracePropertyToUint32(
+            StringConversion::decimalStringToUint32(
                 _traceMemoryBufferKbytes->defaultValue, bufferSize );
             Tracer::setTraceMemoryBufferSize(bufferSize);
 
@@ -481,7 +480,8 @@ void TracePropertyOwner::initCurrentValue(
 
         _traceMemoryBufferKbytes->currentValue = value;
 
-        Tracer::tracePropertyToUint32( value, bufferSize );
+        // KS_TODO confirm that we can ignore the error return
+        StringConversion::decimalStringToUint32( value, bufferSize );
         Tracer::setTraceMemoryBufferSize(bufferSize);
     }
     else if (String::equalNoCase(_traceFileSizeKBytes->propertyName,name))
@@ -557,7 +557,7 @@ Boolean TracePropertyOwner::isValid(
 {
     if (String::equal(_traceComponents->propertyName, name))
     {
-        String newValue          = value;
+        String newValue = value;
         String invalidComponents;
 
         //
@@ -611,62 +611,42 @@ Boolean TracePropertyOwner::isValid(
     }
     else if (String::equal(_traceMemoryBufferKbytes->propertyName, name))
     {
-        Boolean retCode = false;
-        Uint32 size = 0;
-
         //
         // Ckeck if the trace memeory buffer size is valid
         //
-        retCode = Tracer::tracePropertyToUint32(value ,size);
-
-        if (!retCode || (size > PEGASUS_TRC_BUFFER_MAX_SIZE_KB) ||
-                        (size < PEGASUS_TRC_BUFFER_MIN_SIZE_KB))
+        if (!ConfigManager::isValidUint32Value(value,
+            PEGASUS_TRC_BUFFER_MIN_SIZE_KB,
+            PEGASUS_TRC_BUFFER_MAX_SIZE_KB))
         {
-            throw InvalidPropertyValue(name, value);
+             throw InvalidPropertyValue(name, value);
         }
         return true;
     }
-    else if (String::equalNoCase(_traceFileSizeKBytes->propertyName,name))
+    else if (String::equal(_traceFileSizeKBytes->propertyName,name))
     {
-        Uint32 traceFileSizeKBytes = 0;
         const Uint32 minimumFileSizeKBytes = 10240;
         const Uint32 maximumFileSizeKBytes = 2097152;
 
-        if ( Tracer::tracePropertyToUint32( value, traceFileSizeKBytes))
+        if (!ConfigManager::isValidUint32Value(value,
+            minimumFileSizeKBytes,
+            maximumFileSizeKBytes))
         {
-           throw InvalidPropertyValue(name, value);
-        }
-
-         /* checking File size greater than 10MB
-            and less than 2GB */
-         if (traceFileSizeKBytes < minimumFileSizeKBytes ||
-                    traceFileSizeKBytes > maximumFileSizeKBytes)
-         {
              throw InvalidPropertyValue(name, value);
-         }
-
+        }
         return true;
     }
-    else if (String::equalNoCase(_numberOfTraceFiles->propertyName,name))
+    else if (String::equal(_numberOfTraceFiles->propertyName,name))
     {
-         Uint32 numberOfTraceFiles = 0;
-         const Uint32 minimumNumberOfTraceFiles = 3;
-         const Uint32 maximumNumberOfTraceFiles = 20;
+        const Uint32 minimumNumberOfTraceFiles = 3;
+        const Uint32 maximumNumberOfTraceFiles = 20;
 
-         if ( Tracer::tracePropertyToUint32( value, numberOfTraceFiles))
-         {
+        if (!ConfigManager::isValidUint32Value(value,
+            minimumNumberOfTraceFiles,
+            maximumNumberOfTraceFiles))
+        {
              throw InvalidPropertyValue(name, value);
-         }
-
-         /* checking number of files greater 3
-                 and less than 20 */
-         if(numberOfTraceFiles < minimumNumberOfTraceFiles ||
-                           numberOfTraceFiles > maximumNumberOfTraceFiles)
-         {
-             throw InvalidPropertyValue(name, value);
-         }
-
-         return true;
+        }
+        return true;
     }
     else
     {

@@ -53,7 +53,7 @@
 
     1. all - Conduct the above tests on all instances in a namespace.
 
-    The goal of this test program is to be able to test 99% of the functionality
+    The goal of this program is to be able to test 99% of the functionality
     of the pull operations excluding primarily error tests and tests
     specifically for the format of the requests and responses (which are
     best done by wbemexc and the pegasus/test test cases)
@@ -416,7 +416,7 @@ OPTIONS:\n\
     -u USER         String. Connect as this USER Name.\n\
     -p PASSWORD     String. Connect with this PASSWORD.\n\
     -t TIMEOUT      Integer or \"NULL\" interoperation timeout. (Default: \n\
-                    NULL, set by server). \"NULL\" tells server to set value.\n\
+                    NULL, set by server). \"NULL\" server sets value.\n\
     -s seconds      Time to sleep between operations. Used to test timeouts\n\
                     Default = 0.\n\
     -T              Show results of detailed timing of the operations\n\
@@ -438,7 +438,7 @@ OPTIONS:\n\
     -l QUERYFILTERLANG String value for queryFilterLanguage parameter.\n\
                     Note - This parameter not supported in Pegasus now.\n\
                     Default \"\" which tells server no value.\n\
-    -r REPEAT       Integer count of number of times to repeat pull sequence.\n\
+    -r REPEAT       Integer count of number times to repeat pull sequence.\n\
                     This is support for stress testing. Repeats are\n\
                     serial, not concurrent. 1 means execute test twice.\n\
     -R              Reverse Exit code. Useful to add error tests to\n\
@@ -635,12 +635,12 @@ void displayTimeDiff(const String& operationName,
              << endl;
     }
 }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //
 // Class, Instance, Object, QualifierDecl Array Sorts
 // Included from cimcli to allow sorting of returned arrays for comparisons
 //
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static inline int _compareCIMNames(const CIMName& c1, const CIMName& c2)
 {
@@ -705,7 +705,7 @@ static int _compareKeyBinding(const CIMKeyBinding& kb1,
                         kb2.getValue().getCString(),
                         uValue2))
                     {
-                        rtn = (uValue2 - uValue1);
+                        rtn = (int)(uValue2 - uValue1);
                     }
                     else
                     {
@@ -723,7 +723,7 @@ static int _compareKeyBinding(const CIMKeyBinding& kb1,
                         kb2.getValue().getCString(),
                         sValue2))
                     {
-                        rtn = (sValue2 - sValue1);
+                        rtn = (int)(sValue2 - sValue1);
                     }
                     else
                     {
@@ -1024,7 +1024,7 @@ bool compareInstance(const String& s1, const String& s2,
                 }
             }
 
-            // Property from p1 not fount in p2
+            // Property from p1 not found in p2
             if (!found)
             {
                 cerr << "Property " << p1.getName().getString()
@@ -1034,7 +1034,7 @@ bool compareInstance(const String& s1, const String& s2,
 
             // If properties not identical test for individual attribute
             // equality
-            if (!p1.identical(p2))
+            if (!p1.identical(p2) && verboseCompare)
             {
                 if (p1.getName() != p2.getName())
                 {
@@ -1106,8 +1106,8 @@ bool compareInstance(const String& s1, const String& s2,
                     else
                     {
                         cerr << "ERROR: Property " << p1.getName().getString()
-                             << " Not identical in parameters"
-                                " other than type, value, array type, and size "
+                             << " Not identical in parameters other"
+                                " than type, value, array type, and size "
                             << i1.getPath().toString() << endl;
 
                         // display the two properties that differ
@@ -1166,9 +1166,7 @@ bool displayAndTestReturns(const String& op, bool endOfSequence,
                  << ". Delivered " << returnedCount << endl;
         return true;
     }
-
-    // unreachable
-    PEGASUS_UNREACHABLE(return true);
+    return false;
 }
 
 // Display an array of instances. Note that the calling
@@ -1221,7 +1219,8 @@ Boolean compareInstances(const String& s1, const String s2,
     _Sort(inst2);
 
     // Compare based on size of smallest array
-    size_t loopSize = (inst1.size() > inst2.size())?inst1.size() : inst2.size();
+    size_t loopSize = (inst1.size() > inst2.size())
+                          ? inst1.size() : inst2.size();
 
     for (size_t i = 0 ; i < loopSize ; i++)
     {
@@ -1467,7 +1466,7 @@ void displayRtnSizes(const char * op, Uint32Arg& maxObjectCount,
 **   an equivalent non-pull operation to be sure getting same number and
 **   same information.
 **
-*******************************************************************************/
+******************************************************************************/
 
 /*
     Local function to execute pullInstance paths until either the maxcount
@@ -2381,7 +2380,8 @@ void testAllClasses(CIMClient& client, CIMNamespaceName ns,
     }
     testTime.stop();
     VCOUT4 << "Tested PullEnumerationInstances of " << counter
-           << " classes in " << _showTime(testTime.getElapsed()) << endl;
+           << " classes in " << _showTime(testTime.getElapsedUsec()/1000000)
+           << endl;
 
     //
     // Test PullEnumerationInstancePaths
@@ -2399,7 +2399,8 @@ void testAllClasses(CIMClient& client, CIMNamespaceName ns,
     }
     testTime.stop();
     VCOUT4 << "Tested PullEnumerationInstances of " << counter
-           << " classes in " << _showTime(testTime.getElapsed()) << endl;
+           << " classes in " << _showTime(testTime.getElapsedUsec()/1000000)
+           << endl;
 
     // Test association requests against all instances in the system
     // that are not association classes.
@@ -2812,35 +2813,32 @@ String dispStr(const String str)
 }
 void displayInputArguments()
 {
-    VCOUT8 << "Operation = " << operation_opt << endl
-        << "objectName_opt = " << objectName_opt << endl
-
-        << "namespace_opt = " << dispStr(namespace_opt) << endl
-        << "host_opt = " << dispStr(host_opt) << endl
-        << "user_opt = " << dispStr(user_opt) << endl
-        << "password_opt = " << password_opt << endl
-        << "interOperationTimeout_opt = "
-            << interOperationTimeout_opt.toString() << endl
-        << "maxObjectsOnPull_opt = " << maxObjectsOnPull_opt << endl
-        << "compare_opt = " << password_opt << endl
-        << "sleep_opt = " << sleep_opt << endl
-        << "verbose_opt = " << verbose_opt << endl
-        << "repeat_opt = " << repeat_opt << endl
-        << "timeOperation_opt = " << boolToString(timeOperation_opt) << endl
-        << "continueOnError_opt = " << boolToString(continueOnError_opt) << endl
-        << "reverseExitCode_opt = " << boolToString(reverseExitCode_opt) << endl
-        << "deepInheritance_opt = " << boolToString(deepInheritance_opt) << endl
-        << "deepInheritance_opt = " << boolToString(deepInheritance_opt) << endl
-        << "requestClassOrigin_opt = " << boolToString(requestClassOrigin_opt)
-             << endl
-        << "errorsAsWarnings_opt = " << boolToString(errorsAsWarnings_opt)
-            << endl
-        << "clientTimeoutSeconds_opt = "
-            << clientTimeoutSeconds_opt.toString() << endl
-        << "propertyList_opt = " << propertyList_opt.toString() << endl
-        << "filterQuery_opt = " << filterQuery_opt << endl
-        << "filterQueryLanguage_opt = " << filterQueryLanguage_opt << endl
-        << endl;
+    VCOUT8 << "Input Arguments:\n  Operation=" << operation_opt
+        << "\n  objectName_opt=" << objectName_opt
+        << "\n  namespace_opt=" << dispStr(namespace_opt)
+        << "\n  host_opt=" << dispStr(host_opt)
+        << "\n  user_opt=" << dispStr(user_opt)
+        << "\n  password_opt=" << password_opt
+        << "\n  interOperationTimeout_opt="
+            << interOperationTimeout_opt.toString()
+        << "\n  maxObjectsOnPull_opt=" << maxObjectsOnPull_opt
+        << "\n  compare_opt=" << password_opt
+        << "\n  sleep_opt=" << sleep_opt
+        << "\n  verbose_opt=" << verbose_opt
+        << "\n  repeat_opt=" << repeat_opt
+        << "\n  timeOperation_opt=" << boolToString(timeOperation_opt)
+        << "\n  continueOnError_opt=" << boolToString(continueOnError_opt)
+        << "\n  reverseExitCode_opt=" << boolToString(reverseExitCode_opt)
+        << "\n  deepInheritance_opt=" << boolToString(deepInheritance_opt)
+        << "\n  deepInheritance_opt=" << boolToString(deepInheritance_opt)
+        << "\n  requestClassOrigin_opt=" << boolToString(requestClassOrigin_opt)
+        << "\n  errorsAsWarnings_opt=" << boolToString(errorsAsWarnings_opt)
+        << "\n  clientTimeoutSeconds_opt="
+            << clientTimeoutSeconds_opt.toString()
+        << "\n  propertyList_opt=" << propertyList_opt.toString()
+        << "\n  filterQuery_opt=" << filterQuery_opt
+        << "\n  filterQueryLanguage_opt=" << filterQueryLanguage_opt
+        << endl << endl;
 }
 
 bool connectToHost(CIMClient& client)

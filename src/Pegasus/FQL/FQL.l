@@ -40,6 +40,9 @@ extern int FQL_error(const char*);
 
 #define YY_INPUT(BUF, NREAD, NREQUESTED) FQLInput(BUF, NREAD, NREQUESTED)
 
+// set no unistd.h flag
+#define YY_NO_UNISTD_H
+
 #include <Pegasus/Common/Config.h>
 #include <Pegasus/FQL/FQLParserState.h>
 #include <cstring>

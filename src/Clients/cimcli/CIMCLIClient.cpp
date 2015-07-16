@@ -124,7 +124,7 @@ String _getElapsedTimeFmtd(Options& opts)
 
         return str;
     }
-    return "0 sec";
+    return "0 sec ";
 }
 
 

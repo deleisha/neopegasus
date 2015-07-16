@@ -1340,7 +1340,7 @@ void ProviderAgentContainer::cleanDisconnectedClientRequests()
     PEG_METHOD_ENTER(TRC_PROVIDERMANAGER,
         "ProviderAgentContainer::cleanDisconnectedClientRequests");
 
-    // Array to store the keys which need to be remvoed.
+    // Array to store the keys which need to be removed.
     Array<String> keys;
 
     AutoMutex tableLock(_outstandingRequestTableMutex);
@@ -1406,14 +1406,15 @@ void ProviderAgentContainer::cleanClosedPullRequests(const String& contextId)
         // If this message found, send the empty response
         if (i.value()->requestMessage->internalOperation)
         {
-            // the context is the original messageId for internal
+            // the enumerationContext is the original messageId for internal
             // operation requests.
             if (i.value()->originalMessageId == contextId)
             {
                 PEG_TRACE((TRC_PROVIDERMANAGER, Tracer::LEVEL1,
-                    "EnumerationContext needed cleanup."
-                    " Send setCompleteMessage %s",
+                    "EnumerationContext cleanup."
+                    " Send provider completeMessage messageId=%s",
                 (const char*)i.value()->originalMessageId.getCString()));
+
                 AutoPtr<CIMResponseMessage> response;
                 SharedPtr<OutstandingRequestEntry> entry = i.value();
                 response.reset(i.value()->requestMessage->buildResponse());
@@ -1641,6 +1642,14 @@ void ProviderAgentContainer::_processResponses()
                     _responseChunkCallback(
                         _outstandingRequestEntry->requestMessage, response);
                 }
+                else
+                {
+                    PEG_TRACE((TRC_DISCARDED_DATA,Tracer::LEVEL4,
+                               "The response for message id %s arrived after " \
+                               "the client disconnected.",
+                               (const char *)response->messageId.getCString()));
+                    delete response;
+                }
             }
             else
             {
@@ -1706,6 +1715,7 @@ void ProviderAgentContainer::_processResponses()
                         "The response for message id %s arrived after the " \
                             "client disconnected.",
                         (const char *)response->messageId.getCString()));
+                    delete response;
                 }
             }
         }

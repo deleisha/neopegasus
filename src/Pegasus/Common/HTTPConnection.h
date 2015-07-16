@@ -177,6 +177,7 @@ private:
     Sint32 _contentOffset;
     Sint32 _contentLength;
     Buffer _incomingBuffer;
+    Buffer _outgoingBuffer;
     SharedPtr<AuthenticationInfo> _authInfo;
 
     // _connectionRequestCount contains the number of

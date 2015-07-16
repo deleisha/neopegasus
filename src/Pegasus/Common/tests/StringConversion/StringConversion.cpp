@@ -590,6 +590,73 @@ void testReal64ToString()
     }
 }
 
+void testOneStringVal(const String& s, Boolean rtn, Uint32 testValue)
+{
+    {
+        Uint32 rtnVal;
+        if (rtn)
+        {
+            PEGASUS_TEST_ASSERT(StringConversion::decimalStringToUint32(
+                                                  s,rtnVal));
+            PEGASUS_TEST_ASSERT(rtnVal == testValue);
+        }
+        else
+        {
+            PEGASUS_TEST_ASSERT(!StringConversion::decimalStringToUint32(
+                                                   s,rtnVal));
+            PEGASUS_TEST_ASSERT(rtnVal == 0);
+        }
+    }
+}
+
+void testOneVal(const char * s, Boolean rtn, Uint32 testValue)
+{
+    {
+        Uint32 rtnVal;
+        if (rtn)
+        {
+            PEGASUS_TEST_ASSERT(StringConversion::decimalStringToUint32(
+                                                  s,rtnVal));
+            PEGASUS_TEST_ASSERT(rtnVal == testValue);
+        }
+        else
+        {
+            PEGASUS_TEST_ASSERT(!StringConversion::decimalStringToUint32(
+                                                   s,rtnVal));
+            PEGASUS_TEST_ASSERT(rtnVal == 0);
+        }
+    }
+}
+
+void testDecimalStringToUint32()
+{
+    testOneVal("0", true, 0);
+    testOneVal("1", true, 1);
+    testOneVal("9999", true, 9999);
+    testOneVal("4294967295", true, 4294967295);
+
+    testOneVal("4294967296", false, 0);
+
+    testOneVal("-1", false, 0);
+    testOneVal("1a", false, 0);
+    testOneVal("a1", false, 0);
+    // error if input string is empty
+    testOneVal("", false, 0);
+
+    testOneStringVal(String("0"), true, 0);
+    testOneStringVal(String("1"), true, 1);
+    testOneStringVal(String("9999"), true, 9999);
+    testOneStringVal(String("4294967295"), true, 4294967295);
+
+    testOneStringVal(String("4294967296"), false, 0);
+
+    testOneStringVal(String("-1"), false, 0);
+    testOneStringVal(String("1a"), false, 0);
+    testOneStringVal(String("a1"), false, 0);
+    // error if input string is empty
+    testOneStringVal(String(""), false, 0);
+}
+
 int main(int, char** argv)
 {
     testIntegerToStringConversions();
@@ -603,6 +670,7 @@ int main(int, char** argv)
     testStringToReal64();
     testReal32ToString();
     testReal64ToString();
+    testDecimalStringToUint32();
 
     cout << argv[0] << " +++++ passed all tests" << endl;
 

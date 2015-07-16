@@ -54,6 +54,9 @@
 PEGASUS_USING_STD;
 PEGASUS_NAMESPACE_BEGIN
 
+// define conversion between sec and usec
+#define PEG_MICROSEC 1000000
+
 // General class to process various objects that are made up of Pegaus
 // Strings back to the String and more directly to the const char* ...
 // used for display. This can be used for
@@ -172,17 +175,20 @@ EnumerationContextTable::EnumerationContextTable()
     _responseCacheMaximumSize(PEGASUS_PULL_RESPONSE_CACHE_DEFAULT_MAX_SIZE),
     _cacheHighWaterMark(0),
     _responseObjectCountHighWaterMark(0),
+    _totalObjectsReturned(0),
     _enumerationContextsOpened(0),
     _enumerationsTimedOut(0),
     _maxOpenContexts(0),
     _maxOpenContextsLimit(PEGASUS_MAX_OPEN_ENUMERATE_CONTEXTS),
+    _highWaterRequestsPerSequence(0),
+    _totalRequestsPerSequence(0),
+    _sequencesClosed(0),
     _requestedSize(0),
     _requestCount(0),
-    _totalZeroLenDelayedResponses(0)
+    _totalZeroLenDelayedResponses(0),
+    // Start for ContextId counter.  500000 was arbitary
+    _contextIdCounter(500000)
 {
-    // Set initial contextId numeric value. No special reason for the number
-    _nextContextIdCounter.set(500000);
-
     // Setup the default value for the operation timeout value if the value
     // received  in a request is NULL.  This is the server defined default.
     ConfigManager* configManager = ConfigManager::getInstance();
@@ -243,7 +249,7 @@ EnumerationContext* EnumerationContextTable::createContext(
     {
         PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL1,
             "Error EnumerationContext Table exceeded Max limit of %u",
-             _responseCacheMaximumSize));
+             _maxOpenContextsLimit));
         return NULL;
     }
     // set the operation timeout to either the default or current
@@ -257,7 +263,7 @@ EnumerationContext* EnumerationContextTable::createContext(
     Uint32 rtnSize;
     char scratchBuffer[22];
     const char* contextId = Uint32ToString(scratchBuffer,
-        getNextId(), rtnSize);
+        _getNextId(), rtnSize);
 
     // Create new context, Context name is monolithically increasing counter.
     EnumerationContext* en = new EnumerationContext(contextId,
@@ -302,7 +308,7 @@ void EnumerationContextTable::displayStatistics(bool clearStats)
 {
     // Show statistics for EnumerationContextTable
     // Should add avg size of requests.  Maybe some other info.
-        cout << buildStatistics(clearStats) << endl;
+    cout << buildStatistics(clearStats) << endl;
 }
 
 // build a string with the statistics info.
@@ -314,7 +320,7 @@ String EnumerationContextTable::buildStatistics(bool clearStats)
     if (_enumerationContextsOpened != 0)
     {
         str.appendPrintf("EnumerationTable Statistics:"
-            "\n  EnumerationCache high water mark=%u"
+            "\n  EnumerationCache highwater mark=%u"
             "\n  Max simultaneous enumerations=%u"
             "\n  Total enumerations opened=%llu",
             _cacheHighWaterMark,
@@ -324,12 +330,18 @@ String EnumerationContextTable::buildStatistics(bool clearStats)
         str.appendPrintf(
             "\n  Enumerations timed out=%u"
             "\n  Current open enumerations=%u"
-            "\n  Average request size=%u"
-            "\n  Response size max=%u",
+            "\n  Avg request maxObjectCount=%u"
+            "\n  Max objects/response=%u"
+            "\n  Avg objects/response=%u"
+            "\n  Avg requests/sequence=%u"
+            "\n  Max requests/sequence=%u",
             _enumerationsTimedOut,
             size(),
             _getAvgRequestSize(),
-            _responseObjectCountHighWaterMark);
+            _responseObjectCountHighWaterMark,
+            _getAvgResponseSize(),
+            _getAvgRequestsPerSequence(),
+            _highWaterRequestsPerSequence);
 
         str.appendPrintf(
             "\n  Total zero Length delayed responses=%llu",
@@ -345,6 +357,10 @@ String EnumerationContextTable::buildStatistics(bool clearStats)
         _requestedSize = 0;
         _responseObjectCountHighWaterMark = 0;
         _totalZeroLenDelayedResponses = 0;
+        _totalObjectsReturned = 0;
+        _totalRequestsPerSequence = 0;
+        _highWaterRequestsPerSequence = 0;
+        _sequencesClosed = 0;
     }
     return str;
 }
@@ -398,21 +414,23 @@ bool EnumerationContextTable::releaseContext(EnumerationContext* en)
 }
 
 // Private remove function with no lock protection. The _tableLock must
-// be set before this function is called to protect the table. This simply
+// be set before this function is called to protect the table. This
 // removes the context from the context table.
+// Boolean return: Returns false if attempt to remove context that is
+// not closed and providers complete. However, for now it then asserts since
+// this is really an internal failure.
+
 bool EnumerationContextTable::_removeContext(EnumerationContext* en)
 {
     PEG_METHOD_ENTER(TRC_ENUMCONTEXT,"EnumerationContextTable::_removeContext");
 
     PEGASUS_DEBUG_ASSERT(en->valid());
 
-    // If it is valid and providers are complete, remove
+    // If context is valid and providers are complete, remove
     // the enumerationContext.  If providers not complete, only
     // completion of provider deliveries can initiate removal of
     // the enumeration context.
-    // This function assumes that the sequence is really complete and
-    // provider returns complete.  If that is not true, it just generates
-    // an error and returns.
+
     // Any functions that set _ClientClosed and _ProvidersComplete
     // must insure that they block until finished with context.
     if (en->_clientClosed && en->_providersComplete)
@@ -422,6 +440,7 @@ bool EnumerationContextTable::_removeContext(EnumerationContext* en)
             *Str(en->getContextId()) ));
         //// KS_TODO Remove this trace output.
         en->trace();
+       PEGASUS_ASSERT(en->_savedRequest == NULL);
 
         // test/set the highwater mark for the table
         // KS_TODO confirm that statistics below always get accumulated
@@ -435,7 +454,17 @@ bool EnumerationContextTable::_removeContext(EnumerationContext* en)
         {
             _responseObjectCountHighWaterMark = en->_responseObjectsCount;
         }
+
+        if (en->_requestCount > _highWaterRequestsPerSequence)
+        {
+            _highWaterRequestsPerSequence = en->_requestCount;
+        }
+
+        _totalObjectsReturned += en->_responseObjectsCount;
         _totalZeroLenDelayedResponses+= en->_totalZeroLenObjectResponseCounter;
+
+        _totalRequestsPerSequence += en->_requestCount;
+        _sequencesClosed++;
 
         _enumContextTable.remove(en->getContextId());
 
@@ -445,10 +474,19 @@ bool EnumerationContextTable::_removeContext(EnumerationContext* en)
         return true;
     }
 
+    PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL3,
+            "EnumerationContext Remove Ignored. ContextId=%s not complete.",
+            *Str(en->getContextId()) ));
+    en->trace();
+
+    // This assert is part of testing. KS_TODO Remove before release
+    PEGASUS_DEBUG_ASSERT(false);
+
     PEG_METHOD_EXIT();
     return false;
 }
 
+// Get the number of entries in the hash table of EnumerationContexts.
 Uint32 EnumerationContextTable::size()
 {
     AutoMutex autoMut(_tableLock);
@@ -475,7 +513,7 @@ EnumerationContext* EnumerationContextTable::find(const String& contextId)
 }
 
 /* Test all table entries and remove the ones timed out.
-   Returns true if the enumeration table is empty
+   Returns true if the enumeration table is empty when finished.
 
 */
 bool EnumerationContextTable::processExpiredContexts()
@@ -485,30 +523,41 @@ bool EnumerationContextTable::processExpiredContexts()
 
     PEGASUS_DEBUG_ASSERT(valid());
 
-    // Lock the EnumerationContextTable so no operations can be accepted
-    // during this process
-
     if (size() == 0)
     {
+        PEG_METHOD_EXIT();
         return true;
     }
 
+    //Timed out entry context Ids will be placed in one of these lists for
+    // processing so we do not remove entries from table while processing
+    // The cleanActiveList is also processed after the table lock is removed.
     Array<String> removeList;
-    Array<String> issueSavedResponseList;
+    Array<String> cleanActiveList;
 
     Uint64 currentTimeUsec = System::getCurrentTimeUsec();
-    {
+
+    PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL4,
+                   "processExpiredContexts Start table size=%u", size() ));
+    // Lock the EnumerationContextTable so no operations can be accepted
+    // during the scan process
+    {    /// Context for automutex
         AutoMutex autoMut(_tableLock);
 
         // Search enumeration table for entries timed out. Sets any entries
-        // that have timed out into a secondary list for processing
+        // that have timed out into a secondary lists for processing
         for (EnumContextTableType::Iterator i = _enumContextTable.start();i;i++)
         {
             EnumerationContext* en = i.value();
+            PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL4,
+                       "Timeout Scan Processing ContextId=%s",
+                       *Str(en->getContextId()) ));
+            //// KS_TODO temporary trace. Remove before release
+            en->trace();
+
+            PEGASUS_DEBUG_ASSERT(en->valid());     // diagnostic. KS_TEMP
             if (en->valid())
             {
-                PEGASUS_DEBUG_ASSERT(en->valid());     // diagnostic. KS_TEMP
-
                 if (en->_operationTimerUsec != 0)
                 {
                     // Only set lock if there is a chance the timer is active.
@@ -516,139 +565,232 @@ bool EnumerationContextTable::processExpiredContexts()
                     // enumerationContext if locked
                     if (en->tryLockContext())
                     {
-                        // test if entry is active (timer not zero)
+                        // test if entry is timed out
                         if (en->isTimedOut(currentTimeUsec))
                         {
                             en->stopTimer();
 
-                            // If providers are complete we can remove the
-                            // context. Otherwise depend on provider completion
-                            // to clean up the enumeration
-                            if (en->providersComplete())
+                            // if active wait for provider timeout then send
+                            // saved response. This restarts timer
+                            if (en->isProcessing())
                             {
-                                removeList.append(en->getContextId());
-                            }
-                            else if (en->isProcessing())
-                            {
-                                issueSavedResponseList.append(
+                                // KS_TODO temp test. This should always
+                                // be true.
+                                PEGASUS_DEBUG_ASSERT(!en->isClientClosed());
+
+                                PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL4,
+                                   "Timeout while IsProcessing ContextId=%s",
+                                   *Str(en->getContextId()) ));
+
+                                cleanActiveList.append(
                                     en->getContextId());
                             }
+                            // Otherwise this is the interoperation timer
+                            // Close client and cleanup based on whether
+                            // providers are complete
                             else
                             {
-                                // depend on provider completion to close
+                                // set ClientClosed since there has been an
+                                // interoperation timeout
+                                en->setClientClosed();
+
+                                // If providers are complete we can remove the
                                 // context.
-                                en->unlockContext();
+                                if (en->providersComplete())
+                                {
+                                    PEG_TRACE((TRC_DISPATCHER, Tracer::LEVEL4,
+                                       "TimeoutProvidersComplete ContextId=%s",
+                                       *Str(en->getContextId())));
+
+                                    removeList.append(en->getContextId());
+                                }
+                                // Providers not complete but client is closed
+                                // This kicks off cleanup effort as well as
+                                // signal to be sure providers continue to
+                                // deliver  responses.
+                                else
+                                {
+                                    PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL4,
+                                       "Timeout Providers NOTComplete "
+                                           "ContextId=%s",
+                                       *Str(en->getContextId()) ));
+
+                                    en->signalProviderWaitCondition();
+
+                                    cleanActiveList.append(en->getContextId());
+                                }
                             }
                         }
-                        else
+                        else  // not timed out
                         {
                             en->unlockContext();
                         }
-                    }
-                }
-            }
-        }
+                    } // end trylock
+                }  // end timer != 0
+            }  // en not valid
+            else
+            {
+                PEG_TRACE((TRC_DISCARDED_DATA, Tracer::LEVEL1,
+                    "Invalid EnumerationContext discarded, ContextId=%s"
+                    " Ignored", *Str(en->getContextId()) ));
 
-        // remove any contexts in the remove list
+                // KS_TODO should we consider trying to remove the invalid
+                // entry?
+            }
+        } // end for loop
+
+        // remove any contexts in the remove list. This should be only
+        // contexts with client closed and providers complete
         for (Uint32 i = 0; i < removeList.size(); i++)
         {
             // unlock before removing the context
             EnumerationContext* en = find(removeList[i]);
             PEGASUS_DEBUG_ASSERT(en->valid());
             _enumerationsTimedOut++;
-            en->setClientClosed();
             en->unlockContext();
             _removeContext(en);
         }
-    }   // release the table lock
+    }   // release the EnumerationContextTable lock
 
-    // For any contexts that are in the savedOperationList,
-    // issue the response and test for consecutive retries that pass
-    // the defined limits. The context is locked at this point
-    // but the table lock has been removed
-    // Consecutive resends of Zero Len response >
-    //  PEGASUS_MAX_CONSECUTIVE_WAITS_BEFORE_ERR will results in setting
-    // the providers closed and issuing message.
-    // After 4 of these messages sent, just close the enumeration.
-    // All contexts in this list remain locked from the previous code
-    for (Uint32 i = 0; i < issueSavedResponseList.size(); i++)
+    // Process entries in the cleanActiveList. At this point
+    // the table is unlocked but all contexts in this list are locked
+    // These are all  entries for which the providers are incomplete
+    // but not responding.
+    // This may be either:
+    //     - Client open Entries for which the zero len saved response is
+    //       sent
+    //     - Client closed entries where the provider chaing
+    //       should be kicked or closed.
+
+    for (Uint32 i = 0; i < cleanActiveList.size(); i++)
     {
-        // recheck by finding, validating and checking state again
+        // recheck by finding, validating and checking EnumerationContext
+        // state again
         //
-        EnumerationContext* en = find(issueSavedResponseList[i]);
+        EnumerationContext* en = find(cleanActiveList[i]);
         PEGASUS_DEBUG_ASSERT(en->valid());
-        PEGASUS_DEBUG_ASSERT(en->isProcessing());
 
-        // Increment the counter for sending zero length responses.
-        // This is used to determine when providers stuck incomplete
-        Uint32 ctr = en->incConsecutiveZeroLenObjectResponseCounter();
-
-        Uint32 targetCount = PEGASUS_MAX_CONSECUTIVE_WAITS_BEFORE_ERR;
-        Uint32 finalTargetCount = targetCount + 3;
-        // If past final target count, set providers complete so we issue
-        // next msg with EOS set. That should close out the client.
-        if (ctr >= finalTargetCount)
-        {
-            en->setProvidersComplete();
-            // Set an error. NOTE: Just guessing if this is the correct error
-            CIMException e = PEGASUS_CIM_EXCEPTION(CIM_ERR_FAILED,
-                             "Provider Responses Failed");
-            // KS_TODO we should also set continueOnError to false since we
-            // really do want to close the client
-            en->setErrorState(e);
-        }
-        // Issue an empty response to the dispatcher.
-        // Set the count to zero so can issue with no responses in
-        // cache.
-        en->_savedOperationMaxObjectCount = 0;
-        CIMOperationRequestDispatcher::issueSavedResponse(en);
-
-        // If we have tried the clean up several times and it did not work,
-        // discard the enumeration context. Just picked the number 4
-        // as the number of retries for the cleanup before we just close the
-        // whole thing.
-        if (ctr >= finalTargetCount)
-        {
-            PEGASUS_DEBUG_ASSERT(en->valid());
-            PEG_TRACE((TRC_DISCARDED_DATA, Tracer::LEVEL1,
-                  "Enumeration Context removed after providers did not"
-                      "respond for at least %u min. ContextId=%s",
-                  ((finalTargetCount * PEGASUS_PULL_MAX_OPERATION_WAIT_SEC)/60),
-                  *Str(en->getContextId()) ));
-
-            // Close the provider side, generate response to client, and
-            // remove the context.
-            // KS_TODO Do not think I need this final setClientClosed
-            en->setClientClosed();
-            en->unlockContext();
-            _removeContext(en);
-        }
-        // The initial test and cleanup.  Started at targetCount and
-        // repeated at least 3 times before we discard the provider
-        // This time call the providerManager cleanup.
-        else if (ctr >= targetCount)
-        {
-            PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL4,
-                "%u Consecutive 0 length responses issued for ContextId=%s",
-                ctr, *Str(en->getContextId()) ));
-
-            // send cleanup message to provider manager.  Need pointer to
-            // this service.
-            CIMServer * cimserver = CIMServer::getInstance();
-            // Ignore false return
-            cimserver->_providerManager->enumerationContextCleanup(
-                en->getContextId());
-            en->unlockContext();
-        }
-        else
-        {
-            en->unlockContext();
-        }
+        // clean up one context
+        _cleanActiveContext(en);
     }
     PEG_METHOD_EXIT();
 
-    // Return true or false depending whether table is empty.
+    // Return true if table is now empty.
     return (size() == 0);
+}
+
+// Attempt to clean up the enumerationContext provided.
+// Assumes the context is locked when called.
+// If client open, issue any saved response and test for consecutive
+// retries that pass the defined limits.
+//     Consecutive resends of Zero Len responses >
+//       PEGASUS_MAX_CONSECUTIVE_WAITS_BEFORE_ERR
+//     results in setting the providers closed and issuing message.
+//
+// After 4 of these messages sent, just close the enumeration.
+//
+// If  client closed, start timer and do the consecutive resend tests
+// to see if the provider should just be closed.
+
+void EnumerationContextTable::_cleanActiveContext(EnumerationContext* en)
+{
+    PEG_METHOD_ENTER(TRC_ENUMCONTEXT,
+                     "EnumerationContextTable::cleanActiveContext");
+    // Increment the counter for sending zero length responses to the
+    // client. Used to determine when providers stuck incomplete
+    Uint32 ctr = en->incConsecutiveZeroLenObjectResponseCounter();
+
+    Uint32 targetCount = PEGASUS_MAX_CONSECUTIVE_WAITS_BEFORE_ERR;
+    Uint32 finalTargetCount = targetCount + 3;
+
+    // If past final target count, set providers complete so we issue
+    // next msg with EOS set. That closes the client. At this
+    // point we have given up completely on the providers but are trying
+    // to send the last message to the client
+    if (ctr >= finalTargetCount)
+    {
+        PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL4,
+                   "IssueSaveResponseList Set ProvidersComplete "
+                   "ContextId=%s ctr=%u finalTargetCount=%u",
+                   *Str(en->getContextId()), ctr, finalTargetCount));
+
+        en->setProvidersComplete();
+        // Set an error.
+        CIMException e = PEGASUS_CIM_EXCEPTION(CIM_ERR_FAILED,
+                         "Provider Responses Failed.");
+        // Force continueOnError to false since we
+        // really do want to close the client
+        en->setContinueOnError(false);
+        en->setErrorState(e);
+    }
+
+    // If client not closed, issue an empty response to the dispatcher.
+    // Otherwise just restart timer to timeout providers
+    // Set the count to zero so can issue with no responses in
+    // cache.
+    en->_savedOperationMaxObjectCount = 0;
+    if (!en->isClientClosed())
+    {
+        PEGASUS_DEBUG_ASSERT(en->isProcessing());
+        CIMOperationRequestDispatcher::issueSavedResponse(en);
+    }
+    else
+    {
+        if (!en->providersComplete())
+        {
+            // restart timer to time cleanup of providers
+            en->startTimer(PEGASUS_PULL_MAX_OPERATION_WAIT_SEC * PEG_MICROSEC);
+        }
+    }
+
+    // Repeat test after issuing saved response.
+    // If we have tried the clean up several times and it did not work,
+    // discard the enumeration context. We just picked the number 4
+    // as the number of retries for the cleanup before we close the
+    // whole thing as broken.
+    if (ctr >= finalTargetCount)
+    {
+        PEG_TRACE((TRC_DISCARDED_DATA, Tracer::LEVEL1,
+              "Enumeration Context removed after providers did not"
+                  "respond for at least %u min. ContextId=%s",
+              ((finalTargetCount * PEGASUS_PULL_MAX_OPERATION_WAIT_SEC)/60),
+              *Str(en->getContextId()) ));
+
+        en->setClientClosed();
+        en->unlockContext();
+        _removeContext(en);
+        PEG_METHOD_EXIT();
+        return;
+    }
+    // The initial test and cleanup.  Started at targetCount and
+    // repeated at least 3 times before we discard the provider
+    // This calls the providerManager cleanup assuming that
+    // providers have stopped delivering without sending the
+    // complete flag.
+    if (ctr >= targetCount)
+    {
+        PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL4,
+            "%u Consecutive 0 length responses issued for ContextId=%s"
+            " Issuing provider cleanup.",
+            ctr, *Str(en->getContextId()) ));
+
+        // send cleanup message to provider manager.  Need pointer to
+        // this service.
+        CIMServer * cimserver = CIMServer::getInstance();
+        // Ignore false return
+        cimserver->_providerManager->enumerationContextCleanup(
+            en->getContextId());
+        en->unlockContext();
+    }
+    else
+    {
+        PEG_TRACE((TRC_ENUMCONTEXT, Tracer::LEVEL4,
+            "%u Consecutive 0 length responses issued for ContextId=%s",
+            ctr, *Str(en->getContextId()) ));
+        en->unlockContext();
+    }
+
+    PEG_METHOD_EXIT();
 }
 
 // Validate every entry in the table.This is a diagnostic that should only
@@ -664,7 +806,7 @@ void EnumerationContextTable::tableValidate()
         if (!en->valid())
         {
             en->trace();
-            PEGASUS_ASSERT(en->valid());
+            PEGASUS_DEBUG_ASSERT(en->valid());
         }
     }
 }

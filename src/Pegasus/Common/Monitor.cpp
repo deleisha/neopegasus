@@ -523,7 +523,7 @@ void Monitor::run(Uint32 milliseconds)
 
     if (events == PEGASUS_SOCKET_ERROR)
     {
-        int selectErrno = 0; 
+        int selectErrno = 0;
         selectErrno = getSocketError();
 
         PEG_TRACE((TRC_HTTP, Tracer::LEVEL1,
@@ -757,6 +757,11 @@ void Monitor::unsolicitSocketMessages(SocketHandle socket)
     }
 
     PEG_METHOD_EXIT();
+}
+
+Mutex& Monitor::getLock()
+{
+    return _entriesMutex;
 }
 
 PEGASUS_NAMESPACE_END

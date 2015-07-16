@@ -342,16 +342,6 @@ public:
                 (_traceComponentMask & ((Uint64)1 << traceComponent)));
     }
 
-    //
-    //Converts a given string representation of a trace property into Uint32.
-    //If the string reperesantation is not valid, the returnd bufferSize is 0.
-    //@param  traceProperty     The trace property value as string
-    //@param  valueInUint32     Returns the value as Uint32.
-    //@return Boolean           True if specified size is a
-    //                          valid string representaion of a Uint32.
-    static Boolean tracePropertyToUint32( const String& traceProperty,
-              Uint32& valueInUint32 );
-
 private:
 
     /** A static single indicator if tracing is turned on allowing to
