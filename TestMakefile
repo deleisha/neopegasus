@@ -972,7 +972,7 @@ ENUMCTXT_TS1B_TEST_CMDS = \
 	$(MAKE)@@--directory \
             $(PEGASUS_ROOT)/src/Pegasus/Client/tests/PullErrors -f@@Makefile poststarttests
 
-ENUMCTXT_POSTTEST_CMD = $(PEGASUS_ROOT)/src/Pegasus/Client/tests/pullop/testContextTraceOutput
+#ENUMCTXT_POSTTEST_CMD = $(PEGASUS_ROOT)/src/Pegasus/Client/tests/pullop/testContextTraceOutput
 
 run_ENUMCTXT_TS1:
 ifeq ($(findstring LINUX_, $(PEGASUS_PLATFORM)), LINUX_)
@@ -986,7 +986,7 @@ ifeq ($(findstring LINUX_, $(PEGASUS_PLATFORM)), LINUX_)
 	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
             CIMSERVER_CONFIG_OPTIONS="$(ENUMCTXT_TS1_CONFIG_OPTIONS)" \
             TESTSUITE_CMDS="$(ENUMCTXT_TS1B_TEST_CMDS)"
-	$(ENUMCTXT_POSTTEST_CMD)
+#	$(ENUMCTXT_POSTTEST_CMD)
 else
 	@ $(ECHO) "+++++ run_ENUMCTXT_TS1 runs only in certain environments"
 endif
