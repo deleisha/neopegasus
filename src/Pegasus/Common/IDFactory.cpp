@@ -54,7 +54,7 @@ Uint32 IDFactory::getID() const
 
     self->_mutex.lock();
     {
-        if (_pool.isEmpty())
+        if (_pool.empty())
         {
             if (self->_nextID < _firstID)
                 self->_nextID = _firstID;

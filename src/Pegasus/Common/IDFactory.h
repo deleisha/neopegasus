@@ -35,8 +35,9 @@
 
 #include <Pegasus/Common/Config.h>
 #include <Pegasus/Common/Mutex.h>
-#include <Pegasus/Common/Stack.h>
 #include <Pegasus/Common/Magic.h>
+
+#include <stack>
 
 PEGASUS_NAMESPACE_BEGIN
 
@@ -71,7 +72,7 @@ public:
 private:
 
     Magic<0x94E91236> _magic;
-    Stack<Uint32> _pool;
+    std::stack<Uint32> _pool;
     Uint32 _firstID;
     Uint32 _nextID;
     Mutex _mutex;
