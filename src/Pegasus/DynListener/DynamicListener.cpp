@@ -44,7 +44,6 @@
 #include <Pegasus/Common/HashTable.h>
 #include <Pegasus/Common/FileSystem.h>
 #include <Pegasus/General/SSLContextManager.h>
-#include <Pegasus/Config/ConfigManager.h>
 
 #include <Pegasus/ExportServer/CIMExportResponseEncoder.h>
 #include <Pegasus/ExportServer/CIMExportRequestDecoder.h>
@@ -88,8 +87,7 @@ public:
         Boolean enableConsumerUnload,
         Uint32 consumerIdleTimeout,
         Uint32 shutdownTimeout,
-        const String & sslCipherSuite="DEFAULT",
-        const Boolean& sslCompatibility = false);
+        const String & sslCipherSuite="DEFAULT");
 
     ~DynamicListenerRep();
 
@@ -169,8 +167,7 @@ DynamicListenerRep::DynamicListenerRep(
     Boolean enableConsumerUnload,          
     Uint32 consumerIdleTimeout,            
     Uint32 shutdownTimeout,
-    const String & sslCipherSuite,
-    const Boolean& sslCompatibility) :
+    const String & sslCipherSuite) :
         _port(portNumber),
         _sslContext(0),
         _sslContextObjectLock(0),
@@ -190,8 +187,7 @@ DynamicListenerRep::DynamicListenerRep(
             String(),
             true,
             String(),
-            sslCipherSuite,
-            sslCompatibility);
+            sslCipherSuite);
         _sslContext = _sslContextMgr->getSSLContext();
         _sslContextObjectLock = _sslContextMgr->getSSLContextObjectLock();
     }
@@ -342,8 +338,7 @@ DynamicListener::DynamicListener(
     Boolean enableConsumerUnload,
     Uint32 consumerIdleTimeout,
     Uint32 shutdownTimeout,
-    const String & sslCipherSuite,
-    const Boolean& sslCompatibility)
+    const String & sslCipherSuite)
         //ONLY IF PEGASUS_HAS_SSL
 {
 
@@ -357,8 +352,7 @@ DynamicListener::DynamicListener(
         enableConsumerUnload,
         consumerIdleTimeout,
         shutdownTimeout,
-        sslCipherSuite,
-        sslCompatibility);
+        sslCipherSuite);
 }
 
 DynamicListener::DynamicListener(

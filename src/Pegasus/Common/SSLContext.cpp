@@ -524,8 +524,7 @@ SSLContextRep::SSLContextRep(
     const String& crlPath,
     SSLCertificateVerifyFunction* verifyCert,
     const String& randomFile,
-    const String& cipherSuite,
-    const Boolean& sslCompatibility)
+    const String& cipherSuite)
 {
     PEG_METHOD_ENTER(TRC_SSL, "SSLContextRep::SSLContextRep()");
 
@@ -535,7 +534,6 @@ SSLContextRep::SSLContextRep(
     _crlPath = crlPath;
     _certificateVerifyFunction = verifyCert;
     _cipherSuite = cipherSuite;
-    _sslCompatibility = sslCompatibility;
     //
     // If a truststore and/or peer verification function is specified,
     // enable peer verification
@@ -561,7 +559,6 @@ SSLContextRep::SSLContextRep(const SSLContextRep& sslContextRep)
     _certificateVerifyFunction = sslContextRep._certificateVerifyFunction;
     _randomFile = sslContextRep._randomFile;
     _cipherSuite = sslContextRep._cipherSuite;
-    _sslCompatibility = sslContextRep._sslCompatibility;
     _sslContext = _makeSSLContext();
 
     PEG_METHOD_EXIT();
@@ -725,27 +722,9 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
 
    
     SSL_CTX_set_options(sslContext, options);
-    if ( _sslCompatibility == false )
-    {
 
-#ifdef TLS1_2_VERSION
-        // Enable only TLSv1.2 and disable all other protocol (SSL v2, SSL v3,
-        // TLS v1.0, TLSv1.1)
-
-        options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_SSLv3;
-#else
-        PEG_METHOD_EXIT();
-        MessageLoaderParms parms(
-            " Common.SSLContext.TLS_1_2_PROTO_NOT_SUPPORTED",
-            "TLSv1.2 protocol support is not detected on this system. "
-            " To run in less secured mode, set sslBackwardCompatibility=true"
-            " in planned config file and start cimserver.");
-        throw SSLException(parms);
-#endif
-    }
-
-    // sslv2 is off permanently even if sslCompatibility is true
     options |= SSL_OP_NO_SSLv2;
+    options |= SSL_OP_NO_SSLv3;
     SSL_CTX_set_options(sslContext, options);
 
 #ifdef PEGASUS_SSL_WEAKENCRYPTION
@@ -1329,8 +1308,7 @@ SSLContext::SSLContext(
         String::EMPTY,
         verifyCert,
         randomFile,
-        String::EMPTY,
-        false);
+        String::EMPTY);
 }
 
 SSLContext::SSLContext(
@@ -1374,8 +1352,7 @@ SSLContext::SSLContext(
         const String& crlPath,
         SSLCertificateVerifyFunction* verifyCert,
         const String& randomFile,
-        const String& cipherSuite,
-        const Boolean& sslCompatibility)
+        const String& cipherSuite )
 {
 #ifndef PEGASUS_ENABLE_SSL_CRL_VERIFICATION
     if (crlPath.size() > 0)
@@ -1388,7 +1365,7 @@ SSLContext::SSLContext(
 #endif
     _rep = new SSLContextRep(
         trustStore, certPath, keyPath, crlPath, verifyCert, randomFile,
-        cipherSuite,sslCompatibility);
+        cipherSuite);
 }
 #endif
 

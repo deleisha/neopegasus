@@ -174,10 +174,10 @@ doc:
 #
 repositoryServer: FORCE
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
-	$(SLEEP) 5
+	$(SLEEP) 2
 	$(RMREPOSITORY) $(REPOSITORY_ROOT)
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart
-	$(SLEEP) 5
+	$(SLEEP) 2
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repositoryServer
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile testrepositoryServer
 
@@ -228,7 +228,7 @@ tests_msg: FORCE
 
 
 shortsleep: FORCE
-	@$(SLEEP) 5
+	@$(SLEEP) 2
 
 ####################
 #
@@ -271,7 +271,7 @@ endif
 	@$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile \
             setupCBATestCertificates
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile cimstart
-	$(SLEEP) 5
+	$(SLEEP) 2
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile ConfigureUsers
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile Create_SSL_Certificate
 ifeq ($(PEGASUS_TEST_SDK),true)
@@ -313,7 +313,6 @@ endif
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ExportClientSSL_TS1
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_Cimserver_Availability
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_sslCipherSuiteTests
-	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_TLSv1_2_tests
 ifeq ($(PEGASUS_ENABLE_CMPI_PROVIDER_MANAGER),true)
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_Cmpi_Sub
 endif
@@ -829,28 +828,6 @@ endif
 ###############################################################################
 
 
-###############################################################################
-##  TLS v 1.2 support test as per NIST 800-131a
-##
-##  Configuration Options: enableHttpsConnection=true sslCipherSuite = TLSv1.2
-##
-###############################################################################
-TLS_1_2_SUPPORT_CONFIG = enableHttpsConnection=true sslCipherSuite=TLSv1.2
-TLSv1_2_support_tests = \
-	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Pegasus/Server/tests/TLSv_1_2_Support@@-f@@Makefile@@test_TLSv1_2
-
-ifdef PEGASUS_HAS_SSL
-run_TLSv1_2_tests:
-	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
-            CIMSERVER_CONFIG_OPTIONS="$(TLS_1_2_SUPPORT_CONFIG)" \
-            TESTSUITE_CMDS="$(TLSv1_2_support_tests)"
-else
-run_TLSv1_2_tests: FORCE
-	@ $(ECHO) "+++++ PEGASUS_HAS_SSL not defined: Skipping TLSv 1.2 support tests"
-endif
-
-###############################################################################
-
 
 ###############################################################################
 ##  idleConnectionTimeout Test Suite 1:  uses ChunkingStressProvider Tests
@@ -1098,7 +1075,7 @@ run_providerReregisterTests:FORCE
 #############################################################################
 startcimListenAddress: FORCE
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="enableHttpConnection=true enableHttpsConnection=true listenAddress=::1,127.0.0.1"
-	$(SLEEP) 5
+	$(SLEEP) 2
 
 
 
@@ -1178,7 +1155,7 @@ TestXMLStartServer: FORCE
 	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Server -f Makefile install_run
 	- $(MKDIRHIER) $(PEGASUS_HOME)/repository_xml
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="repositoryDir=$(PEGASUS_HOME)/repository_xml"
-	$(SLEEP) 5
+	$(SLEEP) 2
 
 ####
 #### The following caused the cimserver to fail on startup
@@ -1288,7 +1265,7 @@ TestBinStartServer: FORCE
 	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Server -f Makefile install_run
 	- $(MKDIRHIER) $(PEGASUS_HOME)/repository_bin
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="enableBinaryRepository=true repositoryDir=$(PEGASUS_HOME)/repository_bin"
-	$(SLEEP) 5
+	$(SLEEP) 2
 
 ###########################
 ##
@@ -1674,11 +1651,11 @@ endif
 
 startcimWithoutSSL: FORCE
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart
-	$(SLEEP) 5
+	$(SLEEP) 2
 
 startcimWithSSL: FORCE
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="enableHttpConnection=false enableHttpsConnection=true"
-	$(SLEEP) 5
+	$(SLEEP) 2
 
 ###############################################################################
 ##

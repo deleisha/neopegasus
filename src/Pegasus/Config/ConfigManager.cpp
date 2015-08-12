@@ -138,8 +138,6 @@ static struct OwnerEntry _properties[] =
          (ConfigPropertyOwner*)&ConfigManager::securityOwner},
     {"sslTrustStore",
          (ConfigPropertyOwner*)&ConfigManager::securityOwner},
-    {"sslBackwardCompatibility",
-         (ConfigPropertyOwner*)&ConfigManager::securityOwner},
 #ifdef PEGASUS_ENABLE_SSL_CRL_VERIFICATION
     {"crlStore",
          (ConfigPropertyOwner*)&ConfigManager::securityOwner},

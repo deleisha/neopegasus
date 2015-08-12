@@ -68,8 +68,7 @@ public:
                     Boolean enableConsumerUnload = DEFAULT_CONSUMER_UNLOAD,
                     Uint32 consumerIdleTimeout = DEFAULT_IDLE_TIMEOUT,
                     Uint32 shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT,
-                    const String & sslCipherSuite="DEFAULT",
-                    const Boolean& sslCompatibility = false);
+                    const String & sslCipherSuite="DEFAULT");
 
     DynamicListener(Uint32 portNumber,
                     const String& consumerDir,

@@ -375,10 +375,6 @@ struct configPropertyDescription configPropertyDescriptionList[] =
         "example: 'listenAddress=All' or 'listenAddress=121.12.33.112', or\n"
         "'listenAddress=121.33.21.26,127.0.0.1,fe80::fe62:9346%eth0'"},
 
-   {"sslBackwardCompatibility",
-        "If 'true', OpenPegasus support SSLv3 and TLSv1 protocol.If 'false',\n"
-        "OpenPegasus support only TLS1.2 protocol for openssl 1.0.1+"},
-
     {"webRoot",
         "Points to a location where the static web pages to be served by the\n"
         "pegasus webserver are stored"},
