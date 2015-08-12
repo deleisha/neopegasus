@@ -373,7 +373,8 @@ HTTPConnection* HTTPConnector::connect(
 
     // Create HTTPConnection object:
 
-    SharedPtr<MP_Socket> mp_socket(new MP_Socket(socket, sslContext, 0));
+    std::shared_ptr<MP_Socket> mp_socket(new MP_Socket( socket, sslContext, 0));
+
     // mp_socket now has responsibility for closing the socket handle
     socketPtr.release();
 

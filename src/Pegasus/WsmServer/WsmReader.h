@@ -35,7 +35,6 @@
 #include <Pegasus/Common/Config.h>
 #include <Pegasus/Common/XmlParser.h>
 #include <Pegasus/Common/AcceptLanguageList.h>
-#include <Pegasus/Common/SharedPtr.h>
 #include <Pegasus/WsmServer/WsmInstance.h>
 #include <Pegasus/WsmServer/WsmSelectorSet.h>
 #include <Pegasus/WsmServer/WsmEndpointReference.h>

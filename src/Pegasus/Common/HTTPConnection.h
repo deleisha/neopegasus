@@ -33,6 +33,8 @@
 #define Pegasus_HTTPConnection_h
 
 #include <iostream>
+#include <memory>
+
 #include <Pegasus/Common/Exception.h>
 #include <Pegasus/Common/Config.h>
 #include <Pegasus/Common/MessageQueue.h>
@@ -43,7 +45,6 @@
 #include <Pegasus/Common/AuthenticationInfo.h>
 #include <Pegasus/Common/TLS.h>
 #include <Pegasus/Common/Linkage.h>
-#include <Pegasus/Common/SharedPtr.h>
 #include <Pegasus/Common/ContentLanguageList.h>
 #include <Pegasus/Common/Buffer.h>
 #include <Pegasus/Common/PegasusAssert.h>
@@ -61,7 +62,7 @@ public:
     /** Constructor. */
     HTTPConnection(
         Monitor* monitor,
-        SharedPtr<MP_Socket>& socket,
+        std::shared_ptr<MP_Socket>& socket,
         const String& ipAddress,
         HTTPAcceptor * owningAcceptor,
         MessageQueue * outputMessageQueue);
@@ -169,7 +170,7 @@ private:
 
     Monitor* _monitor;
 
-    SharedPtr<MP_Socket> _socket;
+    std::shared_ptr<MP_Socket> _socket;
     String _ipAddress;
     HTTPAcceptor* _owningAcceptor;
     MessageQueue* _outputMessageQueue;
@@ -178,7 +179,7 @@ private:
     Sint32 _contentLength;
     Buffer _incomingBuffer;
     Buffer _outgoingBuffer;
-    SharedPtr<AuthenticationInfo> _authInfo;
+    std::shared_ptr<AuthenticationInfo> _authInfo;
 
     // _connectionRequestCount contains the number of
     // requests that have been received on this connection.

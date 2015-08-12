@@ -37,7 +37,6 @@
 #include <Pegasus/Common/CommonUTF.h>
 #include <Pegasus/Common/MessageLoader.h>
 #include <Pegasus/Common/AutoPtr.h>
-#include <Pegasus/Common/SharedPtr.h>
 #include <Pegasus/IndicationService/IndicationConstants.h>
 
 #include "WsmConstants.h"

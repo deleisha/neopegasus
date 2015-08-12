@@ -33,7 +33,6 @@
 #include "CIMOMHandleContext.h"
 
 #include <Pegasus/Common/Tracer.h>
-#include <Pegasus/Common/SharedPtr.h>
 #include <Pegasus/Provider/CIMOMHandle.h>
 #include <Pegasus/Config/ConfigManager.h>
 #include <Pegasus/Common/SCMOClassCache.h>
@@ -56,7 +55,7 @@ static void _initializeNormalizer(
                 CachedClassDefinitionContainer::NAME);
         CIMClass cimClass = container.getClass().clone();
         container = CachedClassDefinitionContainer(cimClass);
-        SharedPtr<NormalizerContext> tmpContext(new CIMOMHandleContext());
+        std::shared_ptr<NormalizerContext> tmpContext(new CIMOMHandleContext());
         ObjectNormalizer tmpNormalizer(
             cimClass,
             includeQualifiers,

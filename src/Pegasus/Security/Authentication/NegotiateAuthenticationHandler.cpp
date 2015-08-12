@@ -92,7 +92,10 @@ AuthenticationStatus NegotiateAuthenticationHandler::authenticate(
     Boolean mapToLocalName = ConfigManager::parseBooleanValue(
         configManager->getCurrentValue("mapToLocalName"));
 
-    SharedPtr<NegotiateServerSession> session = authInfo->getNegotiateSession();
+    std::shared_ptr<NegotiateServerSession> session(
+       authInfo->getNegotiateSession()
+    );
+
     String userName;
     NegotiateAuthenticationStatus status = session->authenticate(authHeader,
             userName, mapToLocalName);
@@ -160,7 +163,10 @@ String NegotiateAuthenticationHandler::getAuthResponseHeader(
         "NegotiateAuthenticationHandler::getAuthResponseHeader()");
 
     String authResp = NEGOTIATE_AUTHENTICATION_CHALLENGE_HEADER;
-    SharedPtr<NegotiateServerSession> session = authInfo->getNegotiateSession();
+    std::shared_ptr<NegotiateServerSession> session(
+        authInfo->getNegotiateSession()
+    );
+
     String challenge = session->getChallenge();
     authResp.append(challenge);
     PEG_TRACE((TRC_AUTHENTICATION, Tracer::LEVEL4,

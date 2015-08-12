@@ -32,10 +32,12 @@
 #ifndef Pegasus_WsmFilter_h
 #define Pegasus_WsmFilter_h
 
+
+#include <memory>
+
 #include <Pegasus/Common/Config.h>
 #include <Pegasus/Common/XmlParser.h>
 #include <Pegasus/Common/AcceptLanguageList.h>
-#include <Pegasus/Common/SharedPtr.h>
 #include <Pegasus/WsmServer/WsmInstance.h>
 #include <Pegasus/WsmServer/WsmSelectorSet.h>
 #include <Pegasus/WsmServer/WsmEndpointReference.h>
@@ -84,7 +86,7 @@ public:
     {
         String queryLanguage;
         String query;
-        SharedPtr<WQLSelectStatement> selectStatement;
+        std::shared_ptr<WQLSelectStatement> selectStatement;
     } WQLFilter;
 
     // Parameters for AssociationFilter dialect defined in DSP0227 Section 8.2.

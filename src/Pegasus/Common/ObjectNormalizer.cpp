@@ -250,11 +250,13 @@ CIMProperty ObjectNormalizer::processProperty(
                         embeddedClassDefs.append(embeddedClassDef);
                     }
 
-                    SharedPtr<NormalizerContext> tmpContext(context->clone());
+                    std::shared_ptr<NormalizerContext> tmpContext(
+		        context->clone());
+
                     ObjectNormalizer tmpNormalizer(embeddedClassDef,
                         includeQualifiers, includeClassOrigin, nameSpace,
                         tmpContext);
-                    if (currentInstance.getPath().getKeyBindings().size()==0)
+                    if (currentInstance.getPath().getKeyBindings().size() == 0)
                     {
                         currentInstance.setPath(
                             currentInstance.buildPath(embeddedClassDef));
@@ -302,7 +304,7 @@ ObjectNormalizer::ObjectNormalizer(
     Boolean includeQualifiers,
     Boolean includeClassOrigin,
     const CIMNamespaceName& nameSpace,
-    SharedPtr<NormalizerContext>& context)
+    std::shared_ptr<NormalizerContext>& context)
   : _cimClass(cimClass),
     _includeQualifiers(includeQualifiers),
     _includeClassOrigin(includeClassOrigin),

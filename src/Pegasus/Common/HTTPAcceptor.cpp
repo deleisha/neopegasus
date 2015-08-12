@@ -899,8 +899,9 @@ void HTTPAcceptor::_acceptConnection()
         "HTTPAcceptor - accept() success.  Socket: %u",
         socket));
 
-    SharedPtr<MP_Socket> mp_socket(new MP_Socket(
-        socket, _sslcontext, _sslContextObjectLock, ipAddress));
+    std::shared_ptr<MP_Socket> mp_socket = std::make_shared<MP_Socket>(
+        socket, _sslcontext, _sslContextObjectLock, ipAddress);
+
     // mp_socket now has responsibility for closing the socket handle
     socketPtr.release();
 

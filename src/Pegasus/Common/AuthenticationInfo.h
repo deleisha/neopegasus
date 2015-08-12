@@ -304,7 +304,7 @@ public:
 
 #ifdef PEGASUS_NEGOTIATE_AUTHENTICATION
     /** Get GSSAPI context for this connection. */
-    SharedPtr<NegotiateServerSession> getNegotiateSession()
+    std::shared_ptr<NegotiateServerSession> getNegotiateSession()
     {
         CheckRep(_rep);
         return _rep->getNegotiateSession();

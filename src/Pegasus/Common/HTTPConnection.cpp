@@ -231,7 +231,7 @@ Boolean HTTPConnection::needsReconnect()
 
 HTTPConnection::HTTPConnection(
     Monitor* monitor,
-    SharedPtr<MP_Socket>& socket,
+    std::shared_ptr<MP_Socket>& socket,
     const String& ipAddress,
     HTTPAcceptor* owningAcceptor,
     MessageQueue* outputMessageQueue)

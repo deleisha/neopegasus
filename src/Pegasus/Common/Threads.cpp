@@ -34,6 +34,7 @@
 #include "IDFactory.h"
 #include "TSDKey.h"
 #include "Once.h"
+#include "PegasusAssert.h"
 
 #if defined(PEGASUS_OS_TYPE_WINDOWS)
 # include <sys/timeb.h>

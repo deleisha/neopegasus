@@ -142,7 +142,7 @@ public:
 
 #ifdef PEGASUS_NEGOTIATE_AUTHENTICATION
     /** Get GSSAPI context for this connection. */
-    SharedPtr<NegotiateServerSession> getNegotiateSession()
+    std::shared_ptr<NegotiateServerSession> getNegotiateSession()
     {
         return _session;
     }
@@ -226,7 +226,7 @@ private:
     String  _ipAddress;
 
 #ifdef PEGASUS_NEGOTIATE_AUTHENTICATION
-    SharedPtr<NegotiateServerSession> _session;
+    std::shared_ptr<NegotiateServerSession> _session;
 #endif //PEGASUS_NEGOTIATE_AUTHENTICATION
     
     Boolean _wasRemotePrivilegedUserAccessChecked;

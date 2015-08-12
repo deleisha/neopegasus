@@ -32,7 +32,8 @@
 #ifndef Pegasus_ObjectNormalizer_h
 #define Pegasus_ObjectNormalizer_h
 
-#include <Pegasus/Common/SharedPtr.h>
+#include <memory>
+
 #include <Pegasus/Common/CIMClass.h>
 #include <Pegasus/Common/CIMInstance.h>
 #include <Pegasus/Common/String.h>
@@ -66,7 +67,7 @@ public:
         Boolean includeQualifiers,
         Boolean includeClassOrigin,
         const CIMNamespaceName& nameSpace,
-        SharedPtr<NormalizerContext>& context);
+        std::shared_ptr<NormalizerContext>& context);
 
     CIMObjectPath processClassObjectPath(
         const CIMObjectPath& cimObjectPath) const;
@@ -93,7 +94,7 @@ private:
 
     Boolean _includeQualifiers;
     Boolean _includeClassOrigin;
-    SharedPtr<NormalizerContext> _context;
+    std::shared_ptr<NormalizerContext> _context;
     CIMNamespaceName _nameSpace;
     static Boolean _enableNormalization;
 };

@@ -29,6 +29,8 @@
 //
 //%/////////////////////////////////////////////////////////////////////////////
 
+#include <memory>
+
 #include <Pegasus/Common/Signal.h>
 #include <Pegasus/Common/Config.h>
 #include <Pegasus/Common/Constants.h>
@@ -156,8 +158,12 @@ public:
     RespAggCounter* respAggregator;
 };
 
-typedef HashTable<String, SharedPtr<OutstandingRequestEntry>, EqualFunc<String>,
-    HashFunc<String> > OutstandingRequestTable;
+typedef HashTable<
+    String,
+    std::shared_ptr<OutstandingRequestEntry>,
+    EqualFunc<String>,
+    HashFunc<String> >
+OutstandingRequestTable;
 
 class RetryThreadParam{
 public:
@@ -1111,12 +1117,12 @@ CIMResponseMessage* ProviderAgentContainer::_processMessage(
         //
         // Set up the OutstandingRequestEntry for this request
         //
-        SharedPtr<OutstandingRequestEntry> outstandingRequestEntry(
-            new OutstandingRequestEntry(
-                originalMessageId,
-                    request,
-                    response,
-                respAggregator));
+        auto outstandingRequestEntry =std::make_shared<OutstandingRequestEntry>(
+            originalMessageId,
+            request,
+            response,
+            respAggregator
+	);
 
         //
         // Lock the Provider Agent Container while initializing the
@@ -1362,7 +1368,7 @@ void ProviderAgentContainer::cleanDisconnectedClientRequests()
                 (const char*)i.value()->originalMessageId.getCString()));
             // create empty response and set isComplete to true.
             AutoPtr<CIMResponseMessage> response;
-            SharedPtr<OutstandingRequestEntry> entry = i.value();
+            auto entry = i.value();
             response.reset(i.value()->requestMessage->buildResponse());
             response->setComplete(true);
             response->messageId = i.value()->originalMessageId;
@@ -1416,7 +1422,7 @@ void ProviderAgentContainer::cleanClosedPullRequests(const String& contextId)
                 (const char*)i.value()->originalMessageId.getCString()));
 
                 AutoPtr<CIMResponseMessage> response;
-                SharedPtr<OutstandingRequestEntry> entry = i.value();
+                auto entry = i.value();
                 response.reset(i.value()->requestMessage->buildResponse());
                 // KS_TODO THIS NOT INTERNATIONALIZED
                 CIMException cimException(CIM_ERR_FAILED,
@@ -1621,7 +1627,7 @@ void ProviderAgentContainer::_processResponses()
 
                 Boolean foundEntry = false;
                 // Get the OutstandingRequestEntry for this response chunk
-                SharedPtr<OutstandingRequestEntry> _outstandingRequestEntry;
+                std::shared_ptr<OutstandingRequestEntry> _outstandingRequestEntry;
                 {
                     AutoMutex tableLock(_outstandingRequestTableMutex);
                     foundEntry = _outstandingRequestTable.lookup(
@@ -1660,7 +1666,7 @@ void ProviderAgentContainer::_processResponses()
 
                 Boolean foundEntry = false;
                 // Give the response to the waiting OutstandingRequestEntry
-                SharedPtr<OutstandingRequestEntry> _outstandingRequestEntry;
+                std::shared_ptr<OutstandingRequestEntry> _outstandingRequestEntry;
                 {
                     AutoMutex tableLock(_outstandingRequestTableMutex);
                     foundEntry = _outstandingRequestTable.lookup(

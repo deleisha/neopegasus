@@ -38,7 +38,6 @@
 #include <Pegasus/Common/ContentLanguageList.h>
 #include <Pegasus/Common/ArrayInternal.h>
 #include <Pegasus/Common/Message.h>
-#include <Pegasus/Common/SharedPtr.h>
 #include <Pegasus/WsmServer/WsmConstants.h>
 #include <Pegasus/WsmServer/WsmSelectorSet.h>
 #include <Pegasus/WsmServer/WsmInstance.h>

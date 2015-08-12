@@ -32,6 +32,7 @@
 
 #include <new>
 #include "IDFactory.h"
+#include "PegasusAssert.h"
 
 PEGASUS_NAMESPACE_BEGIN
 
