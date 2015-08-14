@@ -80,14 +80,14 @@ SSLSocket::SSLSocket(
 {
     PEG_METHOD_ENTER(TRC_SSL, "SSLSocket::SSLSocket()");
 
-    SSL* sslConnection;
-    SharedPtr<X509_STORE, FreeX509STOREPtr> tmpCrlStore;
+    //SharedPtr<X509_STORE, FreeX509STOREPtr> tmpCrlStore;
 
     _sslReadErrno = 0;
 
     //
     // create the SSLConnection area
     //
+    SSL* sslConnection = nullptr;
     if (!(sslConnection = SSL_new(_SSLContext->_rep->getContext())))
     {
         PEG_METHOD_EXIT();
@@ -96,6 +96,9 @@ SSLSocket::SSLSocket(
             "Could not get SSL Connection Area.");
         throw SSLException(parms);
     }
+
+    std::shared_ptr<X509_STORE> tmpCrlStore;
+
 
     // This try/catch block is necessary so that we can free the SSL Connection
     // Area if any exceptions are thrown.
@@ -154,7 +157,7 @@ SSLSocket::SSLSocket(
     }
 
     _SSLConnection = sslConnection;
-    _crlStore = new SharedPtr<X509_STORE, FreeX509STOREPtr>(tmpCrlStore);
+    _crlStore = new std::shared_ptr<X509_STORE >(tmpCrlStore);
 
     PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4, "---> SSL: Created SSL socket");
 
@@ -166,7 +169,7 @@ SSLSocket::~SSLSocket()
     PEG_METHOD_ENTER(TRC_SSL, "SSLSocket::~SSLSocket()");
 
     close();
-    delete static_cast<SharedPtr<X509_STORE, FreeX509STOREPtr>*>(_crlStore);
+    delete static_cast<std::shared_ptr<X509_STORE> *>(_crlStore);
     SSL_free(static_cast<SSL*>(_SSLConnection));
 
     PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL3, "---> SSL: Deleted SSL socket");

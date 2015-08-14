@@ -48,6 +48,8 @@
 # define SSL_CTX void
 #endif
 
+#include <memory>
+
 #include <Pegasus/Common/SSLContext.h>
 #include <Pegasus/Common/Mutex.h>
 #include <Pegasus/Common/Threads.h>
@@ -277,7 +279,8 @@ public:
 
     String getCRLPath() const;
 
-    SharedPtr<X509_STORE, FreeX509STOREPtr> getCRLStore() const;
+    //SharedPtr<X509_STORE, FreeX509STOREPtr> getCRLStore() const;
+    std::shared_ptr<X509_STORE > getCRLStore() const;
 
     void setCRLStore(X509_STORE* store);
 
@@ -318,7 +321,8 @@ private:
 
     SSLCertificateVerifyFunction* _certificateVerifyFunction;
 
-    SharedPtr<X509_STORE, FreeX509STOREPtr> _crlStore;
+    //SharedPtr<X509_STORE, FreeX509STOREPtr> _crlStore;
+    std::shared_ptr<X509_STORE>  _crlStore;
 };
 
 PEGASUS_NAMESPACE_END

@@ -719,10 +719,6 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
 
     int options = SSL_OP_ALL;
 
-
-   
-    SSL_CTX_set_options(sslContext, options);
-
     options |= SSL_OP_NO_SSLv2;
     options |= SSL_OP_NO_SSLv3;
     SSL_CTX_set_options(sslContext, options);
@@ -919,7 +915,13 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
         // one CRL for cimserver?
         X509_LOOKUP* pLookup;
 
-        _crlStore.reset(X509_STORE_new());
+        _crlStore.reset(
+	    X509_STORE_new(),
+	    [] (X509_STORE *ptr) {
+	         X509_STORE_free(ptr);
+	    }
+	);
+
         if (_crlStore.get() == NULL)
         {
             SSL_CTX_free(sslContext);
@@ -1171,7 +1173,7 @@ String SSLContextRep::getCRLPath() const
     return _crlPath;
 }
 
-SharedPtr<X509_STORE, FreeX509STOREPtr> SSLContextRep::getCRLStore() const
+shared_ptr<X509_STORE > SSLContextRep::getCRLStore() const
 {
     return _crlStore;
 }
@@ -1270,9 +1272,9 @@ String SSLContextRep::getTrustStoreUserName() const { return String::EMPTY; }
 
 String SSLContextRep::getCRLPath() const { return String::EMPTY; }
 
-SharedPtr<X509_STORE, FreeX509STOREPtr> SSLContextRep::getCRLStore() const
+shared_ptr<X509_STORE> SSLContextRep::getCRLStore() const
 {
-    return SharedPtr<X509_STORE, FreeX509STOREPtr>();
+    return shared_ptr<X509_STORE>();
 }
 
 void SSLContextRep::setCRLStore(X509_STORE*) { }
