@@ -33,6 +33,8 @@
 #define Pegasus_Tracer_h
 
 #include <cstdarg>
+#include <memory>
+
 #include <Pegasus/Common/String.h>
 #include <Pegasus/Common/System.h>
 #include <Pegasus/Common/Logger.h>
@@ -180,7 +182,7 @@ public:
         @param data      Message to be formatted
         @param binary    flag indicating if message is binary or not
     */
-    static SharedArrayPtr<char> traceFormatChars(
+    static std::shared_ptr<char> traceFormatChars(
         const Buffer& data,
         bool binary);
 
@@ -201,7 +203,7 @@ public:
         @return request message
 
     */
-    static SharedArrayPtr<char> getHTTPRequestMessage(
+    static std::shared_ptr<char> getHTTPRequestMessage(
         const Buffer& requestMessage);
 
     /** Set the trace file to the given file
@@ -495,11 +497,11 @@ inline void Tracer::traceCIMException(
     // empty function
 }
 
-static SharedArrayPtr<char> getHTTPRequestMessage(
+static std::shared_ptr<char> getHTTPRequestMessage(
         const Buffer& requestMessage)
 {
     //empty function
-    return SharedArrayPtr<char>();
+    return std::shared_ptr<char>();
 }
 
 inline Uint32 Tracer::setTraceFile(const char* traceFile)

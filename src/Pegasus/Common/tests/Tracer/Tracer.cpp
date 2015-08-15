@@ -731,8 +731,8 @@ Uint32 test26()
         params,
         false);
 
-    SharedArrayPtr<char> reqMsg(Tracer::getHTTPRequestMessage(
-            buffer));
+    std::shared_ptr<char> reqMsg(
+        Tracer::getHTTPRequestMessage( buffer));
 
     PEG_TRACE((
         TRC_XML_IO,

@@ -379,7 +379,7 @@ char* Tracer::_formatHexDump(
     return targetBuffer;
 }
 
-SharedArrayPtr<char> Tracer::traceFormatChars(
+std::shared_ptr<char> Tracer::traceFormatChars(
     const Buffer& data,
     bool binary)
 {
@@ -388,8 +388,9 @@ SharedArrayPtr<char> Tracer::traceFormatChars(
     static char msg[] ="\n### Parts of data omitted. Only first 768 bytes and "\
         "last 256 bytes shown. For complete information, use traceLevel 5.\n\n";
 
-    SharedArrayPtr<char> outputBuffer(
-        new char[(10*data.size()+sizeof(start)+sizeof(end)+sizeof(msg))]);
+    std::shared_ptr<char> outputBuffer(
+        new char[10 * data.size() + sizeof(start) + sizeof(end) + sizeof(msg)],
+	std::default_delete<char[]>());
 
     char* target = outputBuffer.get();
     size_t size = data.size();
@@ -430,7 +431,7 @@ SharedArrayPtr<char> Tracer::traceFormatChars(
     return outputBuffer;
 }
 
-SharedArrayPtr<char> Tracer::getHTTPRequestMessage(
+std::shared_ptr<char> Tracer::getHTTPRequestMessage(
     const Buffer& requestMessage)
 {
     const Uint32 requestSize = requestMessage.size();
@@ -446,8 +447,10 @@ SharedArrayPtr<char> Tracer::getHTTPRequestMessage(
     }
 
     // Make a copy of the request message.
-    SharedArrayPtr<char>
-        requestBuf(new char [requestSize + 1]);
+    std::shared_ptr<char> requestBuf(
+        new char [requestSize + 1],
+	std::default_delete<char[]>() );
+
     strncpy(requestBuf.get(), requestMessage.getData(), requestSize);
     requestBuf.get()[requestSize] = 0;
 
