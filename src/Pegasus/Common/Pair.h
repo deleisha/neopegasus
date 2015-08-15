@@ -32,45 +32,16 @@
 #ifndef Pegasus_Pair_h
 #define Pegasus_Pair_h
 
-#include <Pegasus/Common/Config.h>
+
 #include <utility>
+
+#include <Pegasus/Common/Config.h>
 
 PEGASUS_NAMESPACE_BEGIN
 
-//If it is C++11 and above
-#if __cplusplus > 199711L
 
 template<class T, class U>
 using Pair = std::pair<T, U >;
-
-#else
-
-template<class T, class U>
-struct Pair
-{
-    T first;
-    U second;
-
-    Pair() : first(), second()
-    {
-    }
-
-    Pair(const Pair<T,U>& x) : first(x.first), second(x.second)
-    {
-    }
-
-    Pair(const T& first_, const U& second_) : first(first_), second(second_)
-    {
-    }
-
-    Pair<T,U>& operator=(const Pair<T,U>& x)
-    {
-        first = x.first;
-        second = x.second;
-        return *this;
-    }
-};
-#endif
 
 PEGASUS_NAMESPACE_END
 
