@@ -35,7 +35,6 @@
 #include <Pegasus/Common/Tracer.h>
 #include <Pegasus/Common/TraceMemoryHandler.h>
 #include <Pegasus/Common/AutoPtr.h>
-#include <Pegasus/Common/SharedPtr.h>
 #include <Pegasus/Common/CIMClass.h>
 #include <Pegasus/Common/CIMMessage.h>
 #include <Pegasus/Common/XmlWriter.h>

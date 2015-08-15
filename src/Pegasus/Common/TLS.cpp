@@ -80,8 +80,6 @@ SSLSocket::SSLSocket(
 {
     PEG_METHOD_ENTER(TRC_SSL, "SSLSocket::SSLSocket()");
 
-    //SharedPtr<X509_STORE, FreeX509STOREPtr> tmpCrlStore;
-
     _sslReadErrno = 0;
 
     //

@@ -41,7 +41,6 @@
 #include <Pegasus/Common/InternalException.h>
 #include <Pegasus/Common/TraceHandler.h>
 #include <Pegasus/Common/Linkage.h>
-#include <Pegasus/Common/SharedPtr.h>
 
 PEGASUS_NAMESPACE_BEGIN
 

@@ -55,7 +55,6 @@
 #include <Pegasus/Common/Threads.h>
 #include <Pegasus/Common/Tracer.h>
 #include <Pegasus/Common/AutoPtr.h>
-#include <Pegasus/Common/SharedPtr.h>
 
 //
 // Typedef's for OpenSSL callback functions.
@@ -67,23 +66,6 @@ extern "C"
 }
 
 PEGASUS_NAMESPACE_BEGIN
-
-#ifdef PEGASUS_HAS_SSL
-struct FreeX509STOREPtr
-{
-    void operator()(X509_STORE* ptr)
-    {
-        X509_STORE_free(ptr);
-    }
-};
-#else
-struct FreeX509STOREPtr
-{
-    void operator()(X509_STORE*)
-    {
-    }
-};
-#endif
 
 
 #ifdef PEGASUS_HAS_SSL
@@ -279,7 +261,6 @@ public:
 
     String getCRLPath() const;
 
-    //SharedPtr<X509_STORE, FreeX509STOREPtr> getCRLStore() const;
     std::shared_ptr<X509_STORE > getCRLStore() const;
 
     void setCRLStore(X509_STORE* store);
@@ -321,7 +302,6 @@ private:
 
     SSLCertificateVerifyFunction* _certificateVerifyFunction;
 
-    //SharedPtr<X509_STORE, FreeX509STOREPtr> _crlStore;
     std::shared_ptr<X509_STORE>  _crlStore;
 };
 

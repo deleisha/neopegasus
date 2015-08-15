@@ -100,7 +100,6 @@ DIRS = \
     List \
     AsyncQueue \
     IDFactory \
-    SharedPtr \
     HostAddress \
     HostLocator \
     OrderedSet \

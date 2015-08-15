@@ -35,6 +35,7 @@
 #include <Pegasus/Common/Config.h>
 #include <Pegasus/Common/Message.h>
 #include <Pegasus/Common/HTTPMessage.h>
+#include <Pegasus/Common/AutoPtr.h>
 #include <Pegasus/Client/Linkage.h>
 
 #ifdef PEGASUS_NEGOTIATE_AUTHENTICATION

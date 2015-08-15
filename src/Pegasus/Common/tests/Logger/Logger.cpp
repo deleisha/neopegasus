@@ -34,7 +34,7 @@
 #include <cstring>
 #include <Pegasus/Common/PegasusAssert.h>
 #include <Pegasus/Common/Logger.h>
-//#include <Pegasus/Common/System.h>
+#include <Pegasus/Common/AutoPtr.h>
 #include <Pegasus/Common/Tracer.h>
 
 
