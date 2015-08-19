@@ -96,7 +96,7 @@ private:
 PEGASUS_NAMESPACE_END
 
 // if GNU GCC version >= 4.7.0, use the built-in atomic operations
-// Clang uses libstdc++ and Atmic operations in clang appreared in clang 3.1
+// Clang uses libstdc++ and atomic operations in clang appreared in clang 3.1
 #if defined(GCC_VERSION) && GCC_VERSION >= 40700 || \
    defined (__clang__ ) && ( __clang_major__ >= 3 && __clang_minor__ >= 1)
 # define PEGASUS_ATOMIC_INT_DEFINED
