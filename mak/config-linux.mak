@@ -110,6 +110,7 @@ else
     FLAGS += -Werror=switch
    endif
     FLAGS += -D_GNU_SOURCE -DTHREAD_SAFE -D_REENTRANT
+    EXTRA_CXX_FLAGS += -std=c++11
 endif
 
 
