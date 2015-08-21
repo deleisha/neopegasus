@@ -327,7 +327,7 @@ void CIMOperationRequestDecoder::sendResponse(
 
     if (queue)
     {
-        AutoPtr<HTTPMessage> httpMessage(new HTTPMessage(message));
+        std::unique_ptr<HTTPMessage> httpMessage(new HTTPMessage(message));
         httpMessage->setCloseConnect(closeConnect);
         queue->enqueue(httpMessage.release());
     }
@@ -2386,7 +2386,7 @@ CIMCreateClassRequestMessage*
 
     _testRequiredParametersExist(gotNewClass);
 
-    AutoPtr<CIMCreateClassRequestMessage> request(
+    std::unique_ptr<CIMCreateClassRequestMessage> request(
         new CIMCreateClassRequestMessage(
             messageId,
             nameSpace,
@@ -2453,7 +2453,7 @@ CIMGetClassRequestMessage* CIMOperationRequestDecoder::decodeGetClassRequest(
     className.rejectIfNotExist();
 
     // Build message
-    AutoPtr<CIMGetClassRequestMessage> request(new CIMGetClassRequestMessage(
+    std::unique_ptr<CIMGetClassRequestMessage> request(new CIMGetClassRequestMessage(
         messageId,
         nameSpace,
         className.value,
@@ -2508,7 +2508,7 @@ CIMModifyClassRequestMessage*
 
     _testRequiredParametersExist("ModifiedClass", gotClass);
 
-    AutoPtr<CIMModifyClassRequestMessage> request(
+    std::unique_ptr<CIMModifyClassRequestMessage> request(
         new CIMModifyClassRequestMessage(
             messageId,
             nameSpace,
@@ -2558,7 +2558,7 @@ CIMEnumerateClassNamesRequestMessage*
 
     // NOTE: className not required for this operation
 
-    AutoPtr<CIMEnumerateClassNamesRequestMessage> request(
+    std::unique_ptr<CIMEnumerateClassNamesRequestMessage> request(
         new CIMEnumerateClassNamesRequestMessage(
             messageId,
             nameSpace,
@@ -2625,7 +2625,7 @@ CIMEnumerateClassesRequestMessage*
 
     // NOTE: Class name not required for this enumerate.
 
-    AutoPtr<CIMEnumerateClassesRequestMessage> request(
+    std::unique_ptr<CIMEnumerateClassesRequestMessage> request(
         new CIMEnumerateClassesRequestMessage(
             messageId,
             nameSpace,
@@ -2674,7 +2674,7 @@ CIMDeleteClassRequestMessage*
 
     _testRequiredParametersExist(className.name(),className.got);
 
-    AutoPtr<CIMDeleteClassRequestMessage> request(
+    std::unique_ptr<CIMDeleteClassRequestMessage> request(
         new CIMDeleteClassRequestMessage(
             messageId,
             nameSpace,
@@ -2723,7 +2723,7 @@ CIMCreateInstanceRequestMessage*
 
     _testRequiredParametersExist("NewInstance", gotInstance);
 
-    AutoPtr<CIMCreateInstanceRequestMessage> request(
+    std::unique_ptr<CIMCreateInstanceRequestMessage> request(
         new CIMCreateInstanceRequestMessage(
             messageId,
             nameSpace,
@@ -2792,7 +2792,7 @@ CIMGetInstanceRequestMessage*
 
     _testRequiredParametersExist(instanceName.got);
 
-    AutoPtr<CIMGetInstanceRequestMessage> request(
+    std::unique_ptr<CIMGetInstanceRequestMessage> request(
         new CIMGetInstanceRequestMessage(
             messageId,
             nameSpace,
@@ -2859,7 +2859,7 @@ CIMModifyInstanceRequestMessage*
 
     _testRequiredParametersExist("ModifiedInstance", gotInstance);
 
-    AutoPtr<CIMModifyInstanceRequestMessage> request(
+    std::unique_ptr<CIMModifyInstanceRequestMessage> request(
         new CIMModifyInstanceRequestMessage(
             messageId,
             nameSpace,
@@ -2937,7 +2937,7 @@ CIMEnumerateInstancesRequestMessage*
     // Reject if required parameter does not exist in request
     className.rejectIfNotExist();
 
-    AutoPtr<CIMEnumerateInstancesRequestMessage> request(
+    std::unique_ptr<CIMEnumerateInstancesRequestMessage> request(
         new CIMEnumerateInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -2991,7 +2991,7 @@ CIMEnumerateInstanceNamesRequestMessage*
     // Reject if required parameter does not exist in request
     className.rejectIfNotExist();
 
-    AutoPtr<CIMEnumerateInstanceNamesRequestMessage> request(
+    std::unique_ptr<CIMEnumerateInstanceNamesRequestMessage> request(
         new CIMEnumerateInstanceNamesRequestMessage(
             messageId,
             nameSpace,
@@ -3036,7 +3036,7 @@ CIMDeleteInstanceRequestMessage*
 
     _testRequiredParametersExist(instanceName.got);
 
-    AutoPtr<CIMDeleteInstanceRequestMessage> request(
+    std::unique_ptr<CIMDeleteInstanceRequestMessage> request(
         new CIMDeleteInstanceRequestMessage(
             messageId,
             nameSpace,
@@ -3084,7 +3084,7 @@ CIMSetQualifierRequestMessage*
 
     _testRequiredParametersExist(gotQualifierDeclaration);
 
-    AutoPtr<CIMSetQualifierRequestMessage> request(
+    std::unique_ptr<CIMSetQualifierRequestMessage> request(
         new CIMSetQualifierRequestMessage(
             messageId,
             nameSpace,
@@ -3134,7 +3134,7 @@ CIMGetQualifierRequestMessage*
 
     _testRequiredParametersExist(gotQualifierName);
 
-    AutoPtr<CIMGetQualifierRequestMessage> request(
+    std::unique_ptr<CIMGetQualifierRequestMessage> request(
         new CIMGetQualifierRequestMessage(
             messageId,
             nameSpace,
@@ -3163,7 +3163,7 @@ CIMEnumerateQualifiersRequestMessage*
         _throwCIMExceptionInvalidIParamName(name);
     }
 
-    AutoPtr<CIMEnumerateQualifiersRequestMessage> request(
+    std::unique_ptr<CIMEnumerateQualifiersRequestMessage> request(
         new CIMEnumerateQualifiersRequestMessage(
             messageId,
             nameSpace,
@@ -3214,7 +3214,7 @@ CIMDeleteQualifierRequestMessage*
 
     _testRequiredParametersExist(gotQualifierName);
 
-    AutoPtr<CIMDeleteQualifierRequestMessage> request(
+    std::unique_ptr<CIMDeleteQualifierRequestMessage> request(
         new CIMDeleteQualifierRequestMessage(
             messageId,
             nameSpace,
@@ -3269,7 +3269,7 @@ CIMReferenceNamesRequestMessage*
     // Reject if required parameter does not exist in request
     objectName.rejectIfNotExist();
 
-    AutoPtr<CIMReferenceNamesRequestMessage> request(
+    std::unique_ptr<CIMReferenceNamesRequestMessage> request(
         new CIMReferenceNamesRequestMessage(
             messageId,
             nameSpace,
@@ -3343,7 +3343,7 @@ CIMReferencesRequestMessage*
     // Reject if required parameter does not exist in request
     objectName.rejectIfNotExist();
 
-    AutoPtr<CIMReferencesRequestMessage> request(
+    std::unique_ptr<CIMReferencesRequestMessage> request(
         new CIMReferencesRequestMessage(
             messageId,
             nameSpace,
@@ -3416,7 +3416,7 @@ CIMAssociatorNamesRequestMessage*
     // Reject if required parameter does not exist in request
     objectName.rejectIfNotExist();
 
-    AutoPtr<CIMAssociatorNamesRequestMessage> request(
+    std::unique_ptr<CIMAssociatorNamesRequestMessage> request(
         new CIMAssociatorNamesRequestMessage(
             messageId,
             nameSpace,
@@ -3503,7 +3503,7 @@ CIMAssociatorsRequestMessage*
     // Reject if required parameter does not exist in request
     objectName.rejectIfNotExist();
 
-    AutoPtr<CIMAssociatorsRequestMessage> request(
+    std::unique_ptr<CIMAssociatorsRequestMessage> request(
         new CIMAssociatorsRequestMessage(
             messageId,
             nameSpace,
@@ -3568,7 +3568,7 @@ CIMGetPropertyRequestMessage*
 
     _testRequiredParametersExist(gotInstanceName && gotPropertyName);
 
-    AutoPtr<CIMGetPropertyRequestMessage> request(
+    std::unique_ptr<CIMGetPropertyRequestMessage> request(
         new CIMGetPropertyRequestMessage(
             messageId,
             nameSpace,
@@ -3637,7 +3637,7 @@ CIMSetPropertyRequestMessage*
 
     _testRequiredParametersExist(gotInstanceName && gotPropertyName);
 
-    AutoPtr<CIMSetPropertyRequestMessage> request(
+    std::unique_ptr<CIMSetPropertyRequestMessage> request(
         new CIMSetPropertyRequestMessage(
             messageId,
             nameSpace,
@@ -3689,7 +3689,7 @@ CIMExecQueryRequestMessage* CIMOperationRequestDecoder::decodeExecQueryRequest(
 
     _testRequiredParametersExist(queryLanguage.got && query.got);
 
-    AutoPtr<CIMExecQueryRequestMessage> request(
+    std::unique_ptr<CIMExecQueryRequestMessage> request(
         new CIMExecQueryRequestMessage(
             messageId,
             nameSpace,
@@ -3720,7 +3720,7 @@ CIMInvokeMethodRequestMessage*
         inParameters.append(paramValue);
     }
 
-    AutoPtr<CIMInvokeMethodRequestMessage> request(
+    std::unique_ptr<CIMInvokeMethodRequestMessage> request(
         new CIMInvokeMethodRequestMessage(
             messageId,
             reference.getNameSpace(),
@@ -3828,7 +3828,7 @@ CIMOpenEnumerateInstancesRequestMessage*
     // Reject if required parameter does not exist in request
     className.rejectIfNotExist();
 
-    AutoPtr<CIMOpenEnumerateInstancesRequestMessage> request(
+    std::unique_ptr<CIMOpenEnumerateInstancesRequestMessage> request(
         new CIMOpenEnumerateInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -3916,7 +3916,7 @@ CIMOpenEnumerateInstancePathsRequestMessage*
     // Reject if required parameter does not exist in request
     className.rejectIfNotExist();
 
-    AutoPtr<CIMOpenEnumerateInstancePathsRequestMessage> request(
+    std::unique_ptr<CIMOpenEnumerateInstancePathsRequestMessage> request(
         new CIMOpenEnumerateInstancePathsRequestMessage(
             messageId,
             nameSpace,
@@ -4019,7 +4019,7 @@ CIMOpenReferenceInstancesRequestMessage*
 
     objectName.rejectIfNotExist();
 
-    AutoPtr<CIMOpenReferenceInstancesRequestMessage> request(
+    std::unique_ptr<CIMOpenReferenceInstancesRequestMessage> request(
         new CIMOpenReferenceInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -4111,7 +4111,7 @@ CIMOpenReferenceInstancePathsRequestMessage*
 
     objectName.rejectIfNotExist();
 
-    AutoPtr<CIMOpenReferenceInstancePathsRequestMessage> request(
+    std::unique_ptr<CIMOpenReferenceInstancePathsRequestMessage> request(
         new CIMOpenReferenceInstancePathsRequestMessage(
             messageId,
             nameSpace,
@@ -4220,7 +4220,7 @@ CIMOpenAssociatorInstancesRequestMessage*
 
     objectName.rejectIfNotExist();
 
-    AutoPtr<CIMOpenAssociatorInstancesRequestMessage> request(
+    std::unique_ptr<CIMOpenAssociatorInstancesRequestMessage> request(
         new CIMOpenAssociatorInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -4323,7 +4323,7 @@ CIMOpenAssociatorInstancePathsRequestMessage*
 
     objectName.rejectIfNotExist();
 
-    AutoPtr<CIMOpenAssociatorInstancePathsRequestMessage> request(
+    std::unique_ptr<CIMOpenAssociatorInstancePathsRequestMessage> request(
         new CIMOpenAssociatorInstancePathsRequestMessage(
             messageId,
             nameSpace,
@@ -4389,7 +4389,7 @@ CIMPullInstancesWithPathRequestMessage*
     enumerationContext.rejectIfNotExist();
     maxObjectCount.rejectIfNotExist();
 
-    AutoPtr<CIMPullInstancesWithPathRequestMessage> request(
+    std::unique_ptr<CIMPullInstancesWithPathRequestMessage> request(
         new CIMPullInstancesWithPathRequestMessage(
             messageId,
             nameSpace,
@@ -4447,7 +4447,7 @@ CIMPullInstancePathsRequestMessage*
     enumerationContext.rejectIfNotExist();
     maxObjectCount.rejectIfNotExist();
 
-    AutoPtr<CIMPullInstancePathsRequestMessage> request(
+    std::unique_ptr<CIMPullInstancePathsRequestMessage> request(
         new CIMPullInstancePathsRequestMessage(
             messageId,
             nameSpace,
@@ -4504,7 +4504,7 @@ CIMPullInstancesRequestMessage*
     enumerationContext.rejectIfNotExist();
     maxObjectCount.rejectIfNotExist();
 
-    AutoPtr<CIMPullInstancesRequestMessage> request(
+    std::unique_ptr<CIMPullInstancesRequestMessage> request(
         new CIMPullInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -4555,7 +4555,7 @@ CIMCloseEnumerationRequestMessage*
         _throwCIMExceptionEnumerationContextRequired();
     }
 
-    AutoPtr<CIMCloseEnumerationRequestMessage> request(
+    std::unique_ptr<CIMCloseEnumerationRequestMessage> request(
         new CIMCloseEnumerationRequestMessage(
             messageId,
             nameSpace,
@@ -4611,7 +4611,7 @@ CIMEnumerationCountRequestMessage*
     }
 
 
-    AutoPtr<CIMEnumerationCountRequestMessage> request(
+    std::unique_ptr<CIMEnumerationCountRequestMessage> request(
         new CIMEnumerationCountRequestMessage(
             messageId,
             nameSpace,
@@ -4690,7 +4690,7 @@ CIMOpenQueryInstancesRequestMessage*
     _testRequiredParametersExist(filterQuery.value,filterQuery.got);
     _testRequiredParametersExist(filterQuery.value,filterQueryLanguage.got);
 
-    AutoPtr<CIMOpenQueryInstancesRequestMessage> request(
+    std::unique_ptr<CIMOpenQueryInstancesRequestMessage> request(
         new CIMOpenQueryInstancesRequestMessage(
             messageId,
             nameSpace,

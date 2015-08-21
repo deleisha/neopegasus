@@ -29,6 +29,9 @@
 //
 //%////////////////////////////////////////////////////////////////////////////
 
+
+#include <memory>
+
 #include <Pegasus/Common/Constants.h>
 #include <Pegasus/Common/HTTPAcceptor.h>
 #include <Pegasus/Common/HTTPConnection.h>
@@ -85,7 +88,7 @@ void HTTPAuthenticatorDelegator::_sendResponse(
 
     if (queue)
     {
-        AutoPtr<HTTPMessage> httpMessage(new HTTPMessage(message));
+        std::unique_ptr<HTTPMessage> httpMessage(new HTTPMessage(message));
         httpMessage->dest = queue->getQueueId();
 
         queue->enqueue(httpMessage.release());
