@@ -29,8 +29,9 @@
 //
 //%/////////////////////////////////////////////////////////////////////////////
 
-#include "CIMClientRep.h"
+#include <memory>
 
+#include "CIMClientRep.h"
 #include <Pegasus/Common/MessageLoader.h>
 #include <Pegasus/Common/System.h>
 #include <Pegasus/Common/LanguageParser.h>
@@ -89,14 +90,14 @@ void CIMClientRep::_connect(bool binaryRequest, bool binaryResponse)
     //
     // Create response decoder:
     //
-    AutoPtr<CIMOperationResponseDecoder> responseDecoder(
+    std::unique_ptr<CIMOperationResponseDecoder> responseDecoder(
         new CIMOperationResponseDecoder(
             this, _requestEncoder.get(), &_authenticator ));
 
     //
     // Attempt to establish a connection:
     //
-    AutoPtr<HTTPConnection> httpConnection(_httpConnector->connect(
+    std::unique_ptr<HTTPConnection> httpConnection(_httpConnector->connect(
         _connectHost,
         _connectPortNumber,
         _connectSSLContext.get(),
@@ -114,7 +115,7 @@ void CIMClientRep::_connect(bool binaryRequest, bool binaryResponse)
         connectHost.append(portStr);
     }
 
-    AutoPtr<CIMOperationRequestEncoder> requestEncoder(
+    std::unique_ptr<CIMOperationRequestEncoder> requestEncoder(
         new CIMOperationRequestEncoder(
             httpConnection.get(), connectHost, &_authenticator,
             binaryRequest,
@@ -412,7 +413,7 @@ CIMClass CIMClientRep::getClass(
     Boolean includeClassOrigin,
     const CIMPropertyList& propertyList)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMGetClassRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMGetClassRequestMessage(
         String::EMPTY,
         nameSpace,
         className,
@@ -427,7 +428,7 @@ CIMClass CIMClientRep::getClass(
     CIMGetClassResponseMessage* response =
         (CIMGetClassResponseMessage*)message;
 
-    AutoPtr<CIMGetClassResponseMessage> destroyer(response);
+    std::unique_ptr<CIMGetClassResponseMessage> destroyer(response);
 
     return response->cimClass;
 }
@@ -440,7 +441,7 @@ CIMResponseData CIMClientRep::getInstance(
     Boolean includeClassOrigin,
     const CIMPropertyList& propertyList)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMGetInstanceRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMGetInstanceRequestMessage(
         String::EMPTY,
         nameSpace,
         instanceName,
@@ -456,7 +457,7 @@ CIMResponseData CIMClientRep::getInstance(
     CIMGetInstanceResponseMessage* response =
         (CIMGetInstanceResponseMessage*)message;
 
-    AutoPtr<CIMGetInstanceResponseMessage> destroyer(response);
+    std::unique_ptr<CIMGetInstanceResponseMessage> destroyer(response);
 
     return response->getResponseData();
 }
@@ -465,7 +466,7 @@ void CIMClientRep::deleteClass(
     const CIMNamespaceName& nameSpace,
     const CIMName& className)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMDeleteClassRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMDeleteClassRequestMessage(
         String::EMPTY,
         nameSpace,
         className,
@@ -476,14 +477,14 @@ void CIMClientRep::deleteClass(
     CIMDeleteClassResponseMessage* response =
         (CIMDeleteClassResponseMessage*)message;
 
-    AutoPtr<CIMDeleteClassResponseMessage> destroyer(response);
+    std::unique_ptr<CIMDeleteClassResponseMessage> destroyer(response);
 }
 
 void CIMClientRep::deleteInstance(
     const CIMNamespaceName& nameSpace,
     const CIMObjectPath& instanceName)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMDeleteInstanceRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMDeleteInstanceRequestMessage(
         String::EMPTY,
         nameSpace,
         instanceName,
@@ -495,14 +496,14 @@ void CIMClientRep::deleteInstance(
     CIMDeleteInstanceResponseMessage* response =
         (CIMDeleteInstanceResponseMessage*)message;
 
-    AutoPtr<CIMDeleteInstanceResponseMessage> destroyer(response);
+    std::unique_ptr<CIMDeleteInstanceResponseMessage> destroyer(response);
 }
 
 void CIMClientRep::createClass(
     const CIMNamespaceName& nameSpace,
     const CIMClass& newClass)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMCreateClassRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMCreateClassRequestMessage(
         String::EMPTY,
         nameSpace,
         newClass,
@@ -513,14 +514,14 @@ void CIMClientRep::createClass(
     CIMCreateClassResponseMessage* response =
         (CIMCreateClassResponseMessage*)message;
 
-    AutoPtr<CIMCreateClassResponseMessage> destroyer(response);
+    std::unique_ptr<CIMCreateClassResponseMessage> destroyer(response);
 }
 
 CIMObjectPath CIMClientRep::createInstance(
     const CIMNamespaceName& nameSpace,
     const CIMInstance& newInstance)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMCreateInstanceRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMCreateInstanceRequestMessage(
         String::EMPTY,
         nameSpace,
         newInstance,
@@ -532,7 +533,7 @@ CIMObjectPath CIMClientRep::createInstance(
     CIMCreateInstanceResponseMessage* response =
         (CIMCreateInstanceResponseMessage*)message;
 
-    AutoPtr<CIMCreateInstanceResponseMessage> destroyer(response);
+    std::unique_ptr<CIMCreateInstanceResponseMessage> destroyer(response);
 
     return response->instanceName;
 }
@@ -541,7 +542,7 @@ void CIMClientRep::modifyClass(
     const CIMNamespaceName& nameSpace,
     const CIMClass& modifiedClass)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMModifyClassRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMModifyClassRequestMessage(
         String::EMPTY,
         nameSpace,
         modifiedClass,
@@ -552,7 +553,7 @@ void CIMClientRep::modifyClass(
     CIMModifyClassResponseMessage* response =
         (CIMModifyClassResponseMessage*)message;
 
-    AutoPtr<CIMModifyClassResponseMessage> destroyer(response);
+    std::unique_ptr<CIMModifyClassResponseMessage> destroyer(response);
 }
 
 void CIMClientRep::modifyInstance(
@@ -561,7 +562,7 @@ void CIMClientRep::modifyInstance(
     Boolean includeQualifiers,
     const CIMPropertyList& propertyList)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMModifyInstanceRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMModifyInstanceRequestMessage(
         String::EMPTY,
         nameSpace,
         modifiedInstance,
@@ -575,7 +576,7 @@ void CIMClientRep::modifyInstance(
     CIMModifyInstanceResponseMessage* response =
         (CIMModifyInstanceResponseMessage*)message;
 
-    AutoPtr<CIMModifyInstanceResponseMessage> destroyer(response);
+    std::unique_ptr<CIMModifyInstanceResponseMessage> destroyer(response);
 }
 
 Array<CIMClass> CIMClientRep::enumerateClasses(
@@ -586,7 +587,7 @@ Array<CIMClass> CIMClientRep::enumerateClasses(
     Boolean includeQualifiers,
     Boolean includeClassOrigin)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMEnumerateClassesRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMEnumerateClassesRequestMessage(
         String::EMPTY,
         nameSpace,
         className,
@@ -602,7 +603,7 @@ Array<CIMClass> CIMClientRep::enumerateClasses(
     CIMEnumerateClassesResponseMessage* response =
         (CIMEnumerateClassesResponseMessage*)message;
 
-    AutoPtr<CIMEnumerateClassesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMEnumerateClassesResponseMessage> destroyer(response);
 
     return response->cimClasses;
 }
@@ -612,7 +613,7 @@ Array<CIMName> CIMClientRep::enumerateClassNames(
     const CIMName& className,
     Boolean deepInheritance)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMEnumerateClassNamesRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMEnumerateClassNamesRequestMessage(
         String::EMPTY,
         nameSpace,
         className,
@@ -625,7 +626,7 @@ Array<CIMName> CIMClientRep::enumerateClassNames(
     CIMEnumerateClassNamesResponseMessage* response =
         (CIMEnumerateClassNamesResponseMessage*)message;
 
-    AutoPtr<CIMEnumerateClassNamesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMEnumerateClassNamesResponseMessage> destroyer(response);
 
     // Temporary code until internal structures use CIMName instead of String
     Array<CIMName> classNameArray;
@@ -646,7 +647,7 @@ CIMResponseData CIMClientRep::enumerateInstances(
     Boolean includeClassOrigin,
     const CIMPropertyList& propertyList)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMEnumerateInstancesRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMEnumerateInstancesRequestMessage(
         String::EMPTY,
         nameSpace,
         className,
@@ -664,7 +665,7 @@ CIMResponseData CIMClientRep::enumerateInstances(
     CIMEnumerateInstancesResponseMessage* response =
         (CIMEnumerateInstancesResponseMessage*)message;
 
-    AutoPtr<CIMEnumerateInstancesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMEnumerateInstancesResponseMessage> destroyer(response);
 
     return response->getResponseData();
 }
@@ -673,7 +674,7 @@ CIMResponseData CIMClientRep::enumerateInstanceNames(
     const CIMNamespaceName& nameSpace,
     const CIMName& className)
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMEnumerateInstanceNamesRequestMessage(
             String::EMPTY,
             nameSpace,
@@ -686,7 +687,7 @@ CIMResponseData CIMClientRep::enumerateInstanceNames(
     CIMEnumerateInstanceNamesResponseMessage* response =
         (CIMEnumerateInstanceNamesResponseMessage*)message;
 
-    AutoPtr<CIMEnumerateInstanceNamesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMEnumerateInstanceNamesResponseMessage> destroyer(response);
 
     return response->getResponseData();
 }
@@ -696,7 +697,7 @@ CIMResponseData CIMClientRep::execQuery(
     const String& queryLanguage,
     const String& query)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMExecQueryRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMExecQueryRequestMessage(
         String::EMPTY,
         nameSpace,
         queryLanguage,
@@ -708,7 +709,7 @@ CIMResponseData CIMClientRep::execQuery(
     CIMExecQueryResponseMessage* response =
         (CIMExecQueryResponseMessage*)message;
 
-    AutoPtr<CIMExecQueryResponseMessage> destroyer(response);
+    std::unique_ptr<CIMExecQueryResponseMessage> destroyer(response);
 
     return response->getResponseData();
 }
@@ -724,7 +725,7 @@ CIMResponseData CIMClientRep::associators(
     Boolean includeClassOrigin,
     const CIMPropertyList& propertyList)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMAssociatorsRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMAssociatorsRequestMessage(
         String::EMPTY,
         nameSpace,
         objectName,
@@ -742,7 +743,7 @@ CIMResponseData CIMClientRep::associators(
     CIMAssociatorsResponseMessage* response =
         (CIMAssociatorsResponseMessage*)message;
 
-    AutoPtr<CIMAssociatorsResponseMessage> destroyer(response);
+    std::unique_ptr<CIMAssociatorsResponseMessage> destroyer(response);
 
     return response->getResponseData();
 }
@@ -755,7 +756,7 @@ CIMResponseData CIMClientRep::associatorNames(
     const String& role,
     const String& resultRole)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMAssociatorNamesRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMAssociatorNamesRequestMessage(
         String::EMPTY,
         nameSpace,
         objectName,
@@ -771,7 +772,7 @@ CIMResponseData CIMClientRep::associatorNames(
     CIMAssociatorNamesResponseMessage* response =
         (CIMAssociatorNamesResponseMessage*)message;
 
-    AutoPtr<CIMAssociatorNamesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMAssociatorNamesResponseMessage> destroyer(response);
 
     return response->getResponseData();
 }
@@ -785,7 +786,7 @@ CIMResponseData CIMClientRep::references(
     Boolean includeClassOrigin,
     const CIMPropertyList& propertyList)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMReferencesRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMReferencesRequestMessage(
         String::EMPTY,
         nameSpace,
         objectName,
@@ -801,7 +802,7 @@ CIMResponseData CIMClientRep::references(
     CIMReferencesResponseMessage* response =
         (CIMReferencesResponseMessage*)message;
 
-    AutoPtr<CIMReferencesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMReferencesResponseMessage> destroyer(response);
 
     return response->getResponseData();
 }
@@ -812,7 +813,7 @@ CIMResponseData CIMClientRep::referenceNames(
     const CIMName& resultClass,
     const String& role)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMReferenceNamesRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMReferenceNamesRequestMessage(
         String::EMPTY,
         nameSpace,
         objectName,
@@ -826,7 +827,7 @@ CIMResponseData CIMClientRep::referenceNames(
     CIMReferenceNamesResponseMessage* response =
         (CIMReferenceNamesResponseMessage*)message;
 
-    AutoPtr<CIMReferenceNamesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMReferenceNamesResponseMessage> destroyer(response);
 
     return response->getResponseData();
 }
@@ -836,7 +837,7 @@ CIMValue CIMClientRep::getProperty(
     const CIMObjectPath& instanceName,
     const CIMName& propertyName)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMGetPropertyRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMGetPropertyRequestMessage(
         String::EMPTY,
         nameSpace,
         instanceName,
@@ -848,7 +849,7 @@ CIMValue CIMClientRep::getProperty(
     CIMGetPropertyResponseMessage* response =
         (CIMGetPropertyResponseMessage*)message;
 
-    AutoPtr<CIMGetPropertyResponseMessage> destroyer(response);
+    std::unique_ptr<CIMGetPropertyResponseMessage> destroyer(response);
 
     return response->value;
 }
@@ -859,7 +860,7 @@ void CIMClientRep::setProperty(
     const CIMName& propertyName,
     const CIMValue& newValue)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMSetPropertyRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMSetPropertyRequestMessage(
         String::EMPTY,
         nameSpace,
         instanceName,
@@ -872,14 +873,14 @@ void CIMClientRep::setProperty(
     CIMSetPropertyResponseMessage* response =
         (CIMSetPropertyResponseMessage*)message;
 
-    AutoPtr<CIMSetPropertyResponseMessage> destroyer(response);
+    std::unique_ptr<CIMSetPropertyResponseMessage> destroyer(response);
 }
 
 CIMQualifierDecl CIMClientRep::getQualifier(
     const CIMNamespaceName& nameSpace,
     const CIMName& qualifierName)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMGetQualifierRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMGetQualifierRequestMessage(
         String::EMPTY,
         nameSpace,
         qualifierName,
@@ -890,7 +891,7 @@ CIMQualifierDecl CIMClientRep::getQualifier(
     CIMGetQualifierResponseMessage* response =
         (CIMGetQualifierResponseMessage*)message;
 
-    AutoPtr<CIMGetQualifierResponseMessage> destroyer(response);
+    std::unique_ptr<CIMGetQualifierResponseMessage> destroyer(response);
 
     return response->cimQualifierDecl;
 }
@@ -899,7 +900,7 @@ void CIMClientRep::setQualifier(
     const CIMNamespaceName& nameSpace,
     const CIMQualifierDecl& qualifierDeclaration)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMSetQualifierRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMSetQualifierRequestMessage(
         String::EMPTY,
         nameSpace,
         qualifierDeclaration,
@@ -910,14 +911,14 @@ void CIMClientRep::setQualifier(
     CIMSetQualifierResponseMessage* response =
         (CIMSetQualifierResponseMessage*)message;
 
-    AutoPtr<CIMSetQualifierResponseMessage> destroyer(response);
+    std::unique_ptr<CIMSetQualifierResponseMessage> destroyer(response);
 }
 
 void CIMClientRep::deleteQualifier(
     const CIMNamespaceName& nameSpace,
     const CIMName& qualifierName)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMDeleteQualifierRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMDeleteQualifierRequestMessage(
         String::EMPTY,
         nameSpace,
         qualifierName,
@@ -929,13 +930,13 @@ void CIMClientRep::deleteQualifier(
     CIMDeleteQualifierResponseMessage* response =
         (CIMDeleteQualifierResponseMessage*)message;
 
-    AutoPtr<CIMDeleteQualifierResponseMessage> destroyer(response);
+    std::unique_ptr<CIMDeleteQualifierResponseMessage> destroyer(response);
 }
 
 Array<CIMQualifierDecl> CIMClientRep::enumerateQualifiers(
     const CIMNamespaceName& nameSpace)
 {
-    AutoPtr<CIMRequestMessage> request(new CIMEnumerateQualifiersRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMEnumerateQualifiersRequestMessage(
         String::EMPTY,
         nameSpace,
         QueueIdStack()));
@@ -946,7 +947,7 @@ Array<CIMQualifierDecl> CIMClientRep::enumerateQualifiers(
     CIMEnumerateQualifiersResponseMessage* response =
         (CIMEnumerateQualifiersResponseMessage*)message;
 
-    AutoPtr<CIMEnumerateQualifiersResponseMessage> destroyer(response);
+    std::unique_ptr<CIMEnumerateQualifiersResponseMessage> destroyer(response);
 
     return response->qualifierDeclarations;
 }
@@ -966,7 +967,7 @@ CIMValue CIMClientRep::invokeMethod(
     // solved with PEP#139 Stage1 as other CIMOMs contained in the object path
     // will cause a TypeMisMatchException
 
-    AutoPtr<CIMRequestMessage> request(new CIMInvokeMethodRequestMessage(
+    std::unique_ptr<CIMRequestMessage> request(new CIMInvokeMethodRequestMessage(
         String::EMPTY,
         nameSpace,
         instanceName,
@@ -979,7 +980,7 @@ CIMValue CIMClientRep::invokeMethod(
     CIMInvokeMethodResponseMessage* response =
         (CIMInvokeMethodResponseMessage*)message;
 
-    AutoPtr<CIMInvokeMethodResponseMessage> destroyer(response);
+    std::unique_ptr<CIMInvokeMethodResponseMessage> destroyer(response);
 
     outParameters = response->outParameters;
 
@@ -1005,7 +1006,7 @@ CIMResponseData CIMClientRep::openEnumerateInstances(
     enumerationContext.setNameSpace(nameSpace);
 
     // Create/send the request message
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMOpenEnumerateInstancesRequestMessage(
             String::EMPTY,                  // messageId_ param
             nameSpace,
@@ -1028,7 +1029,7 @@ CIMResponseData CIMClientRep::openEnumerateInstances(
     CIMOpenEnumerateInstancesResponseMessage* response =
         (CIMOpenEnumerateInstancesResponseMessage*)message;
 
-    AutoPtr<CIMOpenEnumerateInstancesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMOpenEnumerateInstancesResponseMessage> destroyer(response);
 
     // set endOfSequence and context return parameters
     endOfSequence = response->endOfSequence;
@@ -1049,7 +1050,7 @@ CIMResponseData CIMClientRep::openEnumerateInstancePaths(
     Boolean continueOnError,
     Uint32 maxObjectCount)
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMOpenEnumerateInstancePathsRequestMessage(
             String::EMPTY,                  // messageId_ param
             nameSpace,
@@ -1068,7 +1069,7 @@ CIMResponseData CIMClientRep::openEnumerateInstancePaths(
     CIMOpenEnumerateInstancePathsResponseMessage* response =
         (CIMOpenEnumerateInstancePathsResponseMessage*)message;
 
-    AutoPtr<CIMOpenEnumerateInstancePathsResponseMessage> destroyer(response);
+    std::unique_ptr<CIMOpenEnumerateInstancePathsResponseMessage> destroyer(response);
 
     // set paramters to be returned to caller
     endOfSequence = response->endOfSequence;
@@ -1092,7 +1093,7 @@ CIMResponseData  CIMClientRep::openReferenceInstances(
     Boolean continueOnError,
     Uint32 maxObjectCount)
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMOpenReferenceInstancesRequestMessage(
             String::EMPTY,                  // messageId_ param
             nameSpace,
@@ -1115,7 +1116,7 @@ CIMResponseData  CIMClientRep::openReferenceInstances(
     CIMOpenReferenceInstancesResponseMessage* response =
         (CIMOpenReferenceInstancesResponseMessage*)message;
 
-    AutoPtr<CIMOpenReferenceInstancesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMOpenReferenceInstancesResponseMessage> destroyer(response);
 
     // set paramters to be returned to caller
     endOfSequence = response->endOfSequence;
@@ -1138,7 +1139,7 @@ CIMResponseData CIMClientRep::openReferenceInstancePaths(
     Boolean continueOnError,
     Uint32 maxObjectCount)
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMOpenReferenceInstancePathsRequestMessage(
             String::EMPTY,                  // messageId_ param
             nameSpace,
@@ -1159,7 +1160,7 @@ CIMResponseData CIMClientRep::openReferenceInstancePaths(
     CIMOpenReferenceInstancePathsResponseMessage* response =
         (CIMOpenReferenceInstancePathsResponseMessage*)message;
 
-    AutoPtr<CIMOpenReferenceInstancePathsResponseMessage> destroyer(response);
+    std::unique_ptr<CIMOpenReferenceInstancePathsResponseMessage> destroyer(response);
 
     // set paramters to be returned to caller
     endOfSequence = response->endOfSequence;
@@ -1185,7 +1186,7 @@ CIMResponseData CIMClientRep::openAssociatorInstances(
     Boolean continueOnError,
     Uint32 maxObjectCount )
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMOpenAssociatorInstancesRequestMessage(
             String::EMPTY,                  // messageId_ param
             nameSpace,
@@ -1211,7 +1212,7 @@ CIMResponseData CIMClientRep::openAssociatorInstances(
     CIMOpenAssociatorInstancesResponseMessage* response =
         (CIMOpenAssociatorInstancesResponseMessage*)message;
 
-    AutoPtr<CIMOpenAssociatorInstancesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMOpenAssociatorInstancesResponseMessage> destroyer(response);
 
     // set parameters to be returned to caller
     endOfSequence = response->endOfSequence;
@@ -1235,7 +1236,7 @@ CIMResponseData CIMClientRep::openAssociatorInstancePaths(
     Boolean continueOnError,
     Uint32 maxObjectCount)
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMOpenAssociatorInstancePathsRequestMessage(
             String::EMPTY,                  // messageId_ param
             nameSpace,
@@ -1259,7 +1260,7 @@ CIMResponseData CIMClientRep::openAssociatorInstancePaths(
     CIMOpenAssociatorInstancePathsResponseMessage* response =
         (CIMOpenAssociatorInstancePathsResponseMessage*)message;
 
-    AutoPtr<CIMOpenAssociatorInstancePathsResponseMessage> destroyer(response);
+    std::unique_ptr<CIMOpenAssociatorInstancePathsResponseMessage> destroyer(response);
 
     // set paramters to be returned to caller
     endOfSequence = response->endOfSequence;
@@ -1273,7 +1274,7 @@ CIMResponseData CIMClientRep::pullInstancesWithPath(
     Boolean& endOfSequence,
     Uint32 maxObjectCount)
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMPullInstancesWithPathRequestMessage(
             String::EMPTY,                  // messageId_ param
             enumerationContext.getNameSpace(),
@@ -1287,7 +1288,7 @@ CIMResponseData CIMClientRep::pullInstancesWithPath(
         CIMPullInstancesWithPathResponseMessage* response =
             (CIMPullInstancesWithPathResponseMessage*)message;
 
-        AutoPtr<CIMPullInstancesWithPathResponseMessage> destroyer(response);
+        std::unique_ptr<CIMPullInstancesWithPathResponseMessage> destroyer(response);
 
         // set paramters to be returned to caller
         endOfSequence = response->endOfSequence;
@@ -1301,7 +1302,7 @@ CIMResponseData CIMClientRep::pullInstancePaths(
     Boolean& endOfSequence,
     Uint32 maxObjectCount)
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMPullInstancePathsRequestMessage(
             String::EMPTY,                  // messageId_ param
             enumerationContext.getNameSpace(),
@@ -1316,7 +1317,7 @@ CIMResponseData CIMClientRep::pullInstancePaths(
         CIMPullInstancePathsResponseMessage* response =
             (CIMPullInstancePathsResponseMessage*)message;
 
-        AutoPtr<CIMPullInstancePathsResponseMessage> destroyer(response);
+        std::unique_ptr<CIMPullInstancePathsResponseMessage> destroyer(response);
 
         // set paramters to be returned to caller
         endOfSequence = response->endOfSequence;
@@ -1330,7 +1331,7 @@ CIMResponseData CIMClientRep::pullInstances(
     Boolean& endOfSequence,
     Uint32 maxObjectCount)
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMPullInstancesRequestMessage(
             String::EMPTY,                  // messageId_ param
             enumerationContext.getNameSpace(),
@@ -1344,7 +1345,7 @@ CIMResponseData CIMClientRep::pullInstances(
         CIMPullInstancesResponseMessage* response =
             (CIMPullInstancesResponseMessage*)message;
 
-        AutoPtr<CIMPullInstancesResponseMessage> destroyer(response);
+        std::unique_ptr<CIMPullInstancesResponseMessage> destroyer(response);
 
         // set paramters to be returned to caller
         endOfSequence = response->endOfSequence;
@@ -1356,7 +1357,7 @@ CIMResponseData CIMClientRep::pullInstances(
 void CIMClientRep::closeEnumeration(
     CIMEnumerationContext& enumerationContext)
 {
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMCloseEnumerationRequestMessage(
             String::EMPTY,                  // messageId_ param
             enumerationContext.getNameSpace(),
@@ -1370,7 +1371,7 @@ void CIMClientRep::closeEnumeration(
         CIMCloseEnumerationResponseMessage* response =
             (CIMCloseEnumerationResponseMessage*)message;
 
-        AutoPtr<CIMCloseEnumerationResponseMessage> destroyer(response);
+        std::unique_ptr<CIMCloseEnumerationResponseMessage> destroyer(response);
 
         return;
 }
@@ -1382,7 +1383,7 @@ Uint64Arg CIMClientRep::enumerationCount(
     {
         throw InvalidEnumerationContextException();
     }
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMEnumerationCountRequestMessage(
             String::EMPTY,                  // messageId_ param
             enumerationContext.getNameSpace(),
@@ -1396,7 +1397,7 @@ Uint64Arg CIMClientRep::enumerationCount(
         CIMEnumerationCountResponseMessage* response =
             (CIMEnumerationCountResponseMessage*)message;
 
-        AutoPtr<CIMEnumerationCountResponseMessage> destroyer(response);
+        std::unique_ptr<CIMEnumerationCountResponseMessage> destroyer(response);
 
         return response->count ;
 }
@@ -1417,7 +1418,7 @@ CIMResponseData CIMClientRep::openQueryInstances(
     enumerationContext.setNameSpace(nameSpace);
 
     // Create/send the request message
-    AutoPtr<CIMRequestMessage> request(
+    std::unique_ptr<CIMRequestMessage> request(
         new CIMOpenQueryInstancesRequestMessage(
             String::EMPTY,                  // messageId_ param
             nameSpace,
@@ -1437,7 +1438,7 @@ CIMResponseData CIMClientRep::openQueryInstances(
     CIMOpenQueryInstancesResponseMessage* response =
         (CIMOpenQueryInstancesResponseMessage*)message;
 
-    AutoPtr<CIMOpenQueryInstancesResponseMessage> destroyer(response);
+    std::unique_ptr<CIMOpenQueryInstancesResponseMessage> destroyer(response);
 
     // set endOfSequence and context return parameters
     endOfSequence = response->endOfSequence;
@@ -1448,7 +1449,7 @@ CIMResponseData CIMClientRep::openQueryInstances(
 //EXP_PULL_END
 
 Message* CIMClientRep::_doRequest(
-    AutoPtr<CIMRequestMessage>& request,
+    std::unique_ptr<CIMRequestMessage>& request,
     MessageType expectedResponseMessageType)
 {
     if (!_connected && !_doReconnect)
@@ -1522,7 +1523,7 @@ Message* CIMClientRep::_doRequest(
         // Check to see if incoming queue has a message
         //
 
-        AutoPtr<Message> response(dequeue());
+        std::unique_ptr<Message> response(dequeue());
 
         if (response.get())
         {
@@ -1550,7 +1551,7 @@ Message* CIMClientRep::_doRequest(
                 Exception* clientException =
                     ((ClientExceptionMessage*)response.get())->clientException;
 
-                AutoPtr<Exception> d(clientException);
+                std::unique_ptr<Exception> d(clientException);
 
                 // Make the ContentLanguage of the exception available through
                 // the CIMClient API (its also available in the exception).

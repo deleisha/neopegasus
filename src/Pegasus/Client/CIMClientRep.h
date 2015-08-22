@@ -442,7 +442,7 @@ private:
     void _connectLocal(bool binary);
 
     Message* _doRequest(
-        AutoPtr<CIMRequestMessage>& request,
+        std::unique_ptr<CIMRequestMessage>& request,
         MessageType expectedResponseMessageType);
 
     AutoPtr<Monitor> _monitor;
