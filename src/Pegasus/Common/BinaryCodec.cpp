@@ -29,6 +29,8 @@
 //
 //%/////////////////////////////////////////////////////////////////////////////
 
+#include <memory>
+
 #include <Pegasus/Common/StatisticalData.h>
 #include "XmlWriter.h"
 #include "BinaryCodec.h"
@@ -363,7 +365,7 @@ static CIMEnumerateInstancesRequestMessage* _decodeEnumerateInstancesRequest(
     if (!in.getPropertyList(propertyList))
         return 0;
 
-    AutoPtr<CIMEnumerateInstancesRequestMessage> request(
+    std::unique_ptr<CIMEnumerateInstancesRequestMessage> request(
         new CIMEnumerateInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -467,7 +469,7 @@ _decodeEnumerateInstanceNamesRequest(
     if (!in.getName(className))
         return 0;
 
-    AutoPtr<CIMEnumerateInstanceNamesRequestMessage> request(
+    std::unique_ptr<CIMEnumerateInstanceNamesRequestMessage> request(
         new CIMEnumerateInstanceNamesRequestMessage(
             messageId,
             nameSpace,
@@ -576,7 +578,7 @@ static CIMGetInstanceRequestMessage* _decodeGetInstanceRequest(
     if (!in.getPropertyList(propertyList))
         return 0;
 
-    AutoPtr<CIMGetInstanceRequestMessage> request(
+    std::unique_ptr<CIMGetInstanceRequestMessage> request(
         new CIMGetInstanceRequestMessage(
             messageId,
             nameSpace,
@@ -710,7 +712,7 @@ static CIMCreateInstanceRequestMessage* _decodeCreateInstanceRequest(
     if (!in.getInstance(newInstance))
         return 0;
 
-    AutoPtr<CIMCreateInstanceRequestMessage> request(
+    std::unique_ptr<CIMCreateInstanceRequestMessage> request(
         new CIMCreateInstanceRequestMessage(
             messageId,
             nameSpace,
@@ -824,7 +826,7 @@ static CIMModifyInstanceRequestMessage* _decodeModifyInstanceRequest(
     if (!in.getPropertyList(propertyList))
         return 0;
 
-    AutoPtr<CIMModifyInstanceRequestMessage> request(
+    std::unique_ptr<CIMModifyInstanceRequestMessage> request(
         new CIMModifyInstanceRequestMessage(
             messageId,
             nameSpace,
@@ -927,7 +929,7 @@ static CIMDeleteInstanceRequestMessage* _decodeDeleteInstanceRequest(
     if (!in.getObjectPath(instanceName))
         return 0;
 
-    AutoPtr<CIMDeleteInstanceRequestMessage> request(
+    std::unique_ptr<CIMDeleteInstanceRequestMessage> request(
         new CIMDeleteInstanceRequestMessage(
             messageId,
             nameSpace,
@@ -1079,7 +1081,7 @@ static CIMAssociatorsRequestMessage* _decodeAssociatorsRequest(
     if (!in.getPropertyList(propertyList))
         return 0;
 
-    AutoPtr<CIMAssociatorsRequestMessage> request(
+    std::unique_ptr<CIMAssociatorsRequestMessage> request(
         new CIMAssociatorsRequestMessage(
             messageId,
             nameSpace,
@@ -1231,7 +1233,7 @@ static CIMAssociatorNamesRequestMessage* _decodeAssociatorNamesRequest(
     if (!in.getString(resultRole))
         return 0;
 
-    AutoPtr<CIMAssociatorNamesRequestMessage> request(
+    std::unique_ptr<CIMAssociatorNamesRequestMessage> request(
         new CIMAssociatorNamesRequestMessage(
             messageId,
             nameSpace,
@@ -1380,7 +1382,7 @@ static CIMReferencesRequestMessage* _decodeReferencesRequest(
     if (!in.getPropertyList(propertyList))
         return 0;
 
-    AutoPtr<CIMReferencesRequestMessage> request(
+    std::unique_ptr<CIMReferencesRequestMessage> request(
         new CIMReferencesRequestMessage(
             messageId,
             nameSpace,
@@ -1509,7 +1511,7 @@ static CIMReferenceNamesRequestMessage* _decodeReferenceNamesRequest(
     if (!in.getString(role))
         return 0;
 
-    AutoPtr<CIMReferenceNamesRequestMessage> request(
+    std::unique_ptr<CIMReferenceNamesRequestMessage> request(
         new CIMReferenceNamesRequestMessage(
             messageId,
             nameSpace,
@@ -1640,7 +1642,7 @@ static CIMGetClassRequestMessage* _decodeGetClassRequest(
     if (!in.getPropertyList(propertyList))
         return 0;
 
-    AutoPtr<CIMGetClassRequestMessage> request(new CIMGetClassRequestMessage(
+    std::unique_ptr<CIMGetClassRequestMessage> request(new CIMGetClassRequestMessage(
         messageId,
         nameSpace,
         className,
@@ -1764,7 +1766,7 @@ static CIMEnumerateClassesRequestMessage* _decodeEnumerateClassesRequest(
     if (!in.getName(className))
         return 0;
 
-    AutoPtr<CIMEnumerateClassesRequestMessage> request(
+    std::unique_ptr<CIMEnumerateClassesRequestMessage> request(
         new CIMEnumerateClassesRequestMessage(
             messageId,
             nameSpace,
@@ -1884,7 +1886,7 @@ static CIMEnumerateClassNamesRequestMessage* _decodeEnumerateClassNamesRequest(
     if (!in.getName(className))
         return 0;
 
-    AutoPtr<CIMEnumerateClassNamesRequestMessage> request(
+    std::unique_ptr<CIMEnumerateClassNamesRequestMessage> request(
         new CIMEnumerateClassNamesRequestMessage(
             messageId,
             nameSpace,
@@ -1993,7 +1995,7 @@ static CIMCreateClassRequestMessage* _decodeCreateClassRequest(
     if (!in.getClass(newClass))
         return 0;
 
-    AutoPtr<CIMCreateClassRequestMessage> request(
+    std::unique_ptr<CIMCreateClassRequestMessage> request(
         new CIMCreateClassRequestMessage(
             messageId,
             nameSpace,
@@ -2082,7 +2084,7 @@ static CIMDeleteClassRequestMessage* _decodeDeleteClassRequest(
     if (!in.getName(className))
         return 0;
 
-    AutoPtr<CIMDeleteClassRequestMessage> request(
+    std::unique_ptr<CIMDeleteClassRequestMessage> request(
         new CIMDeleteClassRequestMessage(
             messageId,
             nameSpace,
@@ -2171,7 +2173,7 @@ static CIMModifyClassRequestMessage* _decodeModifyClassRequest(
     if (!in.getClass(modifiedClass))
         return 0;
 
-    AutoPtr<CIMModifyClassRequestMessage> request(
+    std::unique_ptr<CIMModifyClassRequestMessage> request(
         new CIMModifyClassRequestMessage(
             messageId,
             nameSpace,
@@ -2261,7 +2263,7 @@ static CIMSetQualifierRequestMessage* _decodeSetQualifierRequest(
     if (!in.getQualifierDecl(qualifierDeclaration))
         return 0;
 
-    AutoPtr<CIMSetQualifierRequestMessage> request(
+    std::unique_ptr<CIMSetQualifierRequestMessage> request(
         new CIMSetQualifierRequestMessage(
             messageId,
             nameSpace,
@@ -2350,7 +2352,7 @@ static CIMGetQualifierRequestMessage* _decodeGetQualifierRequest(
     if (!in.getName(qualifierName))
         return 0;
 
-    AutoPtr<CIMGetQualifierRequestMessage> request(
+    std::unique_ptr<CIMGetQualifierRequestMessage> request(
         new CIMGetQualifierRequestMessage(
             messageId,
             nameSpace,
@@ -2450,7 +2452,7 @@ static CIMDeleteQualifierRequestMessage* _decodeDeleteQualifierRequest(
     if (!in.getName(qualifierName))
         return 0;
 
-    AutoPtr<CIMDeleteQualifierRequestMessage> request(
+    std::unique_ptr<CIMDeleteQualifierRequestMessage> request(
         new CIMDeleteQualifierRequestMessage(
             messageId,
             nameSpace,
@@ -2530,7 +2532,7 @@ static CIMEnumerateQualifiersRequestMessage* _decodeEnumerateQualifiersRequest(
     if (!in.getNamespaceName(nameSpace))
         return 0;
 
-    AutoPtr<CIMEnumerateQualifiersRequestMessage> request(
+    std::unique_ptr<CIMEnumerateQualifiersRequestMessage> request(
         new CIMEnumerateQualifiersRequestMessage(
             messageId,
             nameSpace,
@@ -2646,7 +2648,7 @@ static CIMGetPropertyRequestMessage* _decodeGetPropertyRequest(
     if (!in.getName(propertyName))
         return 0;
 
-    AutoPtr<CIMGetPropertyRequestMessage> request(
+    std::unique_ptr<CIMGetPropertyRequestMessage> request(
         new CIMGetPropertyRequestMessage(
             messageId,
             nameSpace,
@@ -2781,7 +2783,7 @@ static CIMSetPropertyRequestMessage* _decodeSetPropertyRequest(
     if (!in.getValue(propertyValue))
         return 0;
 
-    AutoPtr<CIMSetPropertyRequestMessage> request(
+    std::unique_ptr<CIMSetPropertyRequestMessage> request(
         new CIMSetPropertyRequestMessage(
             messageId,
             nameSpace,
@@ -2892,7 +2894,7 @@ static CIMInvokeMethodRequestMessage* _decodeInvokeMethodRequest(
     if (!in.getParamValueA(inParameters))
         return 0;
 
-    AutoPtr<CIMInvokeMethodRequestMessage> request(
+    std::unique_ptr<CIMInvokeMethodRequestMessage> request(
         new CIMInvokeMethodRequestMessage(
             messageId,
             nameSpace,
@@ -3028,7 +3030,7 @@ static CIMExecQueryRequestMessage* _decodeExecQueryRequest(
     if (!in.getString(query))
         return 0;
 
-    AutoPtr<CIMExecQueryRequestMessage> request(
+    std::unique_ptr<CIMExecQueryRequestMessage> request(
         new CIMExecQueryRequestMessage(
             messageId,
             nameSpace,
@@ -3173,7 +3175,7 @@ static CIMOpenEnumerateInstancesRequestMessage*
     if (!in.getString(filterQuery))
         return 0;
 
-    AutoPtr<CIMOpenEnumerateInstancesRequestMessage> request(
+    std::unique_ptr<CIMOpenEnumerateInstancesRequestMessage> request(
         new CIMOpenEnumerateInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -3341,7 +3343,7 @@ static CIMOpenEnumerateInstancePathsRequestMessage*
     if (!in.getString(filterQuery))
         return 0;
 
-    AutoPtr<CIMOpenEnumerateInstancePathsRequestMessage> request(
+    std::unique_ptr<CIMOpenEnumerateInstancePathsRequestMessage> request(
         new CIMOpenEnumerateInstancePathsRequestMessage(
             messageId,
             nameSpace,
@@ -3532,7 +3534,7 @@ static CIMOpenReferenceInstancesRequestMessage*
     if (!in.getString(filterQuery))
         return 0;
 
-    AutoPtr<CIMOpenReferenceInstancesRequestMessage> request(
+    std::unique_ptr<CIMOpenReferenceInstancesRequestMessage> request(
         new CIMOpenReferenceInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -3707,7 +3709,7 @@ Server/CIMOperationRequestDecoder.cpp */
     if (!in.getString(filterQuery))
         return 0;
 
-    AutoPtr<CIMOpenReferenceInstancePathsRequestMessage> request(
+    std::unique_ptr<CIMOpenReferenceInstancePathsRequestMessage> request(
         new CIMOpenReferenceInstancePathsRequestMessage(
             messageId,
             nameSpace,
@@ -3916,7 +3918,7 @@ static CIMOpenAssociatorInstancesRequestMessage*
     if (!in.getString(filterQuery))
         return 0;
 
-    AutoPtr<CIMOpenAssociatorInstancesRequestMessage> request(
+    std::unique_ptr<CIMOpenAssociatorInstancesRequestMessage> request(
         new CIMOpenAssociatorInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -4115,7 +4117,7 @@ static CIMOpenAssociatorInstancePathsRequestMessage*
     if (!in.getString(filterQuery))
         return 0;
 
-    AutoPtr<CIMOpenAssociatorInstancePathsRequestMessage> request(
+    std::unique_ptr<CIMOpenAssociatorInstancePathsRequestMessage> request(
         new CIMOpenAssociatorInstancePathsRequestMessage(
             messageId,
             nameSpace,
@@ -4264,7 +4266,7 @@ static CIMPullInstancesWithPathRequestMessage*
        return 0;
     }
 
-    AutoPtr<CIMPullInstancesWithPathRequestMessage> request(
+    std::unique_ptr<CIMPullInstancesWithPathRequestMessage> request(
         new CIMPullInstancesWithPathRequestMessage(
             messageId,
             nameSpace,
@@ -4403,7 +4405,7 @@ static CIMPullInstancePathsRequestMessage*
     if (!in.getUint32(maxObjectCount))
        return 0;
 
-    AutoPtr<CIMPullInstancePathsRequestMessage> request(
+    std::unique_ptr<CIMPullInstancePathsRequestMessage> request(
         new CIMPullInstancePathsRequestMessage(
             messageId,
             nameSpace,
@@ -4547,7 +4549,7 @@ static CIMPullInstancesRequestMessage*
        return 0;
     }
 
-    AutoPtr<CIMPullInstancesRequestMessage> request(
+    std::unique_ptr<CIMPullInstancesRequestMessage> request(
         new CIMPullInstancesRequestMessage(
             messageId,
             nameSpace,
@@ -4676,7 +4678,7 @@ static CIMCloseEnumerationRequestMessage* _decodeCloseEnumerationRequest(
         return 0;
     }
 
-    AutoPtr<CIMCloseEnumerationRequestMessage> request(
+    std::unique_ptr<CIMCloseEnumerationRequestMessage> request(
         new CIMCloseEnumerationRequestMessage(
             messageId,
             nameSpace,
@@ -4769,7 +4771,7 @@ static CIMEnumerationCountRequestMessage* _decodeEnumerationCountRequest(
         return 0;
     }
 
-    AutoPtr<CIMEnumerationCountRequestMessage> request(
+    std::unique_ptr<CIMEnumerationCountRequestMessage> request(
         new CIMEnumerationCountRequestMessage(
             messageId,
             nameSpace,
@@ -4895,7 +4897,7 @@ static CIMOpenQueryInstancesRequestMessage*
     if (!in.getUint32Arg(operationTimeout))
         return 0;
 
-    AutoPtr<CIMOpenQueryInstancesRequestMessage> request(
+    std::unique_ptr<CIMOpenQueryInstancesRequestMessage> request(
         new CIMOpenQueryInstancesRequestMessage(
             messageId,
             nameSpace,
