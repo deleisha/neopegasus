@@ -650,7 +650,9 @@ void testCIMGetInstanceRequestMessage(
 {
     CIMGetInstanceRequestMessage inMessage(
         mid, ns, path, iq, ico, pl, qids, auth, user);
+
     inMessage.operationContext = oc;
+
     AutoPtr<CIMGetInstanceRequestMessage> outMessage(
         dynamic_cast<CIMGetInstanceRequestMessage*>(
             serializeDeserializeMessage(&inMessage)));

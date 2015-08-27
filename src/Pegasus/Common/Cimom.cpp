@@ -227,9 +227,7 @@ cimom::~cimom()
 {
     PEGASUS_ASSERT(_routed_queue_shutdown.get() == 0);
 
-    AsyncIoClose *msg = new AsyncIoClose(
-        0,
-        getQueueId());
+    AsyncIoClose *msg = new AsyncIoClose( 0, getQueueId());
 
     msg->op = get_cached_op();
     msg->op->_flags = ASYNC_OPFLAGS_FIRE_AND_FORGET;

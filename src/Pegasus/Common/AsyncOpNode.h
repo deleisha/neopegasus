@@ -107,9 +107,7 @@ inline Message* AsyncOpNode::getRequest()
 inline Message* AsyncOpNode::removeRequest()
 {
     PEGASUS_ASSERT(_request.get() != 0);
-    Message* request = _request.get();
-    _request.release();
-    return request;
+    return  _request.release();
 }
 
 inline void AsyncOpNode::setResponse(Message* response)
@@ -128,9 +126,7 @@ inline Message* AsyncOpNode::getResponse()
 inline Message* AsyncOpNode::removeResponse()
 {
     PEGASUS_ASSERT(_response.get() != 0);
-    Message* response = _response.get();
-    _response.release();
-    return response;
+    return _response.release();
 }
 
 inline void AsyncOpNode::complete()
