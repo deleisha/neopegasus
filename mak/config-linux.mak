@@ -102,15 +102,19 @@ ifeq ($(COMPILER), clang)
 
     EXTRA_CXX_FLAGS += -std=c++11
 else
-    FLAGS += -W -Wall -Wno-unused -Wunused-variable
-  # Starting with gcc 4.3 specific warnings can be reported as error
-  # Enabling a specific selection of warnings to turn into errors
-  ifeq ($(shell expr $(GCC_VERSION) '>=' 4.3), 1)
-    FLAGS += -Werror=unused-variable
-    FLAGS += -Werror=switch
-   endif
+    FLAGS += -W -Wall -Wno-unused -Wunused-variable -std=c++11
+
+    # Starting with gcc 4.3 specific warnings can be reported as error
+    # Enabling a specific selection of warnings to turn into errors
+    ifeq ($(shell expr $(GCC_VERSION) '>=' 4.3), 1)
+        FLAGS += -Werror=unused-variable
+        FLAGS += -Werror=switch
+    endif
+
     FLAGS += -D_GNU_SOURCE -DTHREAD_SAFE -D_REENTRANT
-    EXTRA_CXX_FLAGS += -std=c++11
+    #TODO: following line does not set C++11 in gcc, whereas clang does, Fix it
+    #EXTRA_CXX_FLAGS += -std=c++11
+
 endif
 
 
