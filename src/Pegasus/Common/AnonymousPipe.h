@@ -74,9 +74,7 @@ public:
 
         @exception   Exception (Failed to create pipe)
     */
-    AnonymousPipe (
-        const char * readHandle,
-        const char * writeHandle);
+    AnonymousPipe ( const char * readHandle, const char * writeHandle);
 
     /**
         Destructs the AnonymousPipe instance.
@@ -92,7 +90,8 @@ public:
     enum Status {STATUS_INTERRUPT = -2,
                  STATUS_ERROR     = -1,
                  STATUS_CLOSED    =  0,
-                 STATUS_SUCCESS   =  1};
+                 STATUS_SUCCESS   =  1
+    };
 
     /**
         Writes data from a buffer to the AnonymousPipe.
@@ -104,9 +103,7 @@ public:
                  STATUS_CLOSED    on closed connection;
                  STATUS_ERROR     on error;
     */
-    Status writeBuffer (
-        const void * buffer,
-        Uint32 bytesToWrite);
+    Status writeBuffer ( const void * buffer, Uint32 bytesToWrite);
 
     /**
         Writes a CIM message to the AnonymousPipe.
@@ -119,8 +116,7 @@ public:
                  STATUS_CLOSED    on closed connection;
                  STATUS_ERROR     on error;
     */
-    Status writeMessage (
-        CIMMessage * message);
+    Status writeMessage ( CIMMessage * message);
 
     /**
         Reads data into a buffer from the AnonymousPipe.
@@ -133,9 +129,7 @@ public:
                  STATUS_ERROR     on error;
                  STATUS_INTERRUPT on interrupt
     */
-    Status readBuffer (
-        void * buffer,
-        Uint32 bytesToRead);
+    Status readBuffer ( void * buffer, Uint32 bytesToRead);
 
     /**
         Reads a CIM message from the AnonymousPipe.
@@ -149,8 +143,7 @@ public:
                  STATUS_ERROR     on error;
                  STATUS_INTERRUPT on interrupt
     */
-    Status readMessage (
-    CIMMessage * & message);
+    Status readMessage ( CIMMessage * & message);
 
     /**
         Gets a char [] form of the pipe handle for reading from the
@@ -159,8 +152,7 @@ public:
         NOTE: the caller must supply the buffer.  The buffer size must be at
               least 32.
     */
-    void exportReadHandle (
-        char * buffer) const;
+    void exportReadHandle ( char * buffer) const;
 
     /**
         Gets a char [] form of the pipe handle for writing to the
@@ -169,8 +161,7 @@ public:
         NOTE: the caller must supply the buffer.  The buffer size must be at
               least 32.
     */
-    void exportWriteHandle (
-        char * buffer) const;
+    void exportWriteHandle ( char * buffer) const;
 
     /**
         Closes the pipe handle for reading from the AnonymousPipe instance.
